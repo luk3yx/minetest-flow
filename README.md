@@ -41,7 +41,6 @@ local my_gui = flow.make_gui(function(player, ctx)
 
     -- gui.VBox is a "container element" added by this mod.
     return gui.VBox {
-        -- GUI elements have
         gui.Label {label = "Here is a dropdown:"},
         gui.Dropdown {
             -- The value of this dropdown will be accessible from ctx.form.my_dropdown
@@ -94,7 +93,7 @@ direct equivalent in Minetest formspecs.
 
 #### `gui.VBox`
 
-A vertical box, similar to a VBox in GTK. Elements in the VBox are stacked
+A vertical box, similar to a VBox in GTK. Elements inside a VBox are stacked
 vertically.
 
 ```lua
@@ -122,7 +121,7 @@ gui.HBox{
     -- You can nest HBox and VBox elements
     gui.VBox{
         gui.Image{texture_name="default_dirt.png", align_h = "centre"},
-        gui.Label{label="This label should be below the above texture."},
+        gui.Label{label="Dirt"},
     }
 }
 ```
