@@ -409,10 +409,13 @@ local function render_ast(node)
         }
     end
     res[#res + 1] = node
-    local t4 = minetest.get_us_time()
-    print('apply_padding', t2 - t1)
-    print('expand', t3 - t2)
-    print('field_close_on_enter', t4 - t3)
+
+    if DEBUG_MODE then
+        local t4 = minetest.get_us_time()
+        print('apply_padding', t2 - t1)
+        print('expand', t3 - t2)
+        print('field_close_on_enter', t4 - t3)
+    end
     return res
 end
 
@@ -671,7 +674,9 @@ function Form:show(player, ctx)
     local t3 = minetest.get_us_time()
 
     open_formspecs[name] = form_info
-    print(t3 - t, t2 - t, t3 - t2)
+    if DEBUG_MODE then
+        print(t3 - t, t2 - t, t3 - t2)
+    end
     minetest.show_formspec(name, self._formname, fs)
 end
 
@@ -725,8 +730,10 @@ local function on_fs_input(player, formname, fields)
         if fields[field] then
             local new_value = transformer(fields[field])
             if redraw_if_changed[field] and ctx_form[field] ~= new_value then
-                print('Modified:', dump(field), dump(ctx_form[field]), '->',
-                    dump(new_value))
+                if DEBUG_MODE then
+                    print('Modified:', dump(field), dump(ctx_form[field]),
+                        '->', dump(new_value))
+                end
                 redraw_fs = true
             end
             ctx_form[field] = new_value
