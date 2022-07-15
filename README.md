@@ -120,8 +120,8 @@ gui.HBox{
 
     -- You can nest HBox and VBox elements
     gui.VBox{
-        gui.Image{texture_name="default_dirt.png", align_h = "centre"},
-        gui.Label{label="Dirt"},
+        gui.Image{w=1, h=1, texture_name="default_dirt.png", align_h="centre"},
+        gui.Label{label="Dirt", expand=true, align_h="centre"},
     }
 }
 ```
