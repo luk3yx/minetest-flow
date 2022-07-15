@@ -696,7 +696,7 @@ end
 local used_ids = {}
 setmetatable(used_ids, {__mode = "v"})
 
-local formname_prefix = minetest and minetest.get_current_modname() or "" .. ":"
+local formname_prefix = minetest.get_current_modname() .. ":"
 
 local form_mt = {__index = Form}
 function flow.make_gui(build_func)
