@@ -189,11 +189,12 @@ gui.HBox{
 }
 ```
 
-You should not do this as it creates unnecessary boxes, and the label may be
-slightly off-centre (because label widths depend on screen size, DPI, etc
-and this code doesn't trigger the centering hack):
+You should not use spacers to centre elements as it creates unnecessary boxes,
+and labels may be slightly off-centre (because label widths depend on screen
+size, DPI, etc and this code doesn't trigger the centering hack):
 
 ```lua
+-- This is bad!
 gui.HBox{
     gui.Spacer{},
     gui.Label{label="I am not properly centered!"},
