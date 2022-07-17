@@ -174,8 +174,8 @@ I advise against using spacers when `expand = true` and `align = ...` would
 work just as well since spacers are implemented hackily and won't account for
 some special cases.
 
-You can replicate the above example without spacers, however it doesn't look as
-clean:
+You can replicate the above example without spacers, however the code doesn't
+look as clean:
 
 ```lua
 gui.HBox{
