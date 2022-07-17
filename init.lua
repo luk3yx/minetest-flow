@@ -330,7 +330,7 @@ local function expand(box)
     local expand_count = 0
     for i, node in ipairs(box) do
         local width, height = node[w] or 0, node[h] or 0
-        if width > 0 and height > 0 then
+        if not invisible_elems[node.type] then
             if i > 1 then
                 free_space = free_space - (box.spacing or DEFAULT_SPACING)
             end
@@ -347,7 +347,7 @@ local function expand(box)
 
             -- Nodes are expanded in the other direction no matter what their
             -- expand setting is
-            if box_h > height and height > 0 then
+            if box_h > height then
                 align_types[node[align_v] or "auto"](node, y, h,
                     box_h - height - (node.padding or 0) * 2 -
                     (y == "y" and node._padding_top or 0), true)
@@ -561,18 +561,7 @@ local function parse_callbacks(tree, ctx_form)
     return callbacks, saved_fields
 end
 
-local gui = setmetatable({
-    embed = function(fs, w, h)
-        if type(fs) ~= "table" then
-            fs = formspec_ast.parse(fs)
-        end
-        fs.type = "container"
-        fs.w = w
-        fs.h = h
-        return fs
-    end,
-    formspec_version = 0,
-}, {
+local gui_mt = {
     __index = function(gui, k)
         local elem_type = k
         if elem_type ~= "ScrollbarOptions" and elem_type ~= "TableOptions" and
@@ -589,10 +578,19 @@ local gui = setmetatable({
         rawset(gui, k, f)
         return f
     end,
-    __newindex = function()
-        error("Cannot modifiy gui table")
-    end
-})
+}
+local gui = setmetatable({
+    embed = function(fs, w, h)
+        if type(fs) ~= "table" then
+            fs = formspec_ast.parse(fs)
+        end
+        fs.type = "container"
+        fs.w = w
+        fs.h = h
+        return fs
+    end,
+    formspec_version = 0,
+}, gui_mt)
 flow.widgets = gui
 
 local current_ctx
@@ -780,8 +778,8 @@ end
 
 -- Extra GUI elements
 
--- Please don't use rawset(gui, ...) in your own code
-rawset(gui, "PaginatedVBox", function(def)
+-- Please don't modify the gui table in your own code
+function gui.PaginatedVBox(def)
     local w, h = def.w, def.h
     def.w, def.h = nil, nil
     local paginator_name = "_paginator-" .. assert(def.name)
@@ -844,9 +842,9 @@ rawset(gui, "PaginatedVBox", function(def)
             },
         }
     }
-end)
+end
 
-rawset(gui, "ScrollableVBox", function(def)
+function gui.ScrollableVBox(def)
     -- On older clients fall back to a paginated vbox
     if gui.formspec_version < 4 then
         return gui.PaginatedVBox(def)
@@ -882,9 +880,9 @@ rawset(gui, "ScrollableVBox", function(def)
             name = scrollbar_name,
         }
     }
-end)
+end
 
-rawset(gui, "Flow", function(def)
+function gui.Flow(def)
     local vbox = {
         type = "vbox",
         bgcolor = def.bgcolor,
@@ -908,7 +906,21 @@ rawset(gui, "Flow", function(def)
     end
     vbox[#vbox + 1] = gui.HBox(line)
     return vbox
-end)
+end
+
+function gui.Spacer(def)
+    def.type = "container"
+    if def.expand == nil then
+        def.expand = true
+    end
+    assert(#def == 0)
+    return def
+end
+
+-- Prevent any further modifications to the gui table
+function gui_mt.__newindex()
+    error("Cannot modifiy gui table")
+end
 
 local modpath = minetest.get_modpath("flow")
 local example_form

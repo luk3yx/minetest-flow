@@ -152,6 +152,64 @@ gui.ScrollableVBox{
 }
 ```
 
+#### `gui.Spacer`
+
+A "flexible space" element that expands by default. Example usage:
+
+```lua
+gui.HBox{
+    -- These buttons will be on the left-hand side of the screen
+    gui.Button{label = "Cancel"},
+    gui.Button{label = "< Back"},
+
+    gui.Spacer{},
+
+    -- These buttons will be on the right-hand side of the screen
+    gui.Button{label = "Next >"},
+    gui.Button{label = "Confirm"},
+}
+```
+
+I advise against using spacers when `expand = true` and `align = ...` would
+work just as well since spacers are implemented hackily and won't account for
+some special cases.
+
+You can replicate the above example without spacers, however it doesn't look as
+clean:
+
+```lua
+gui.HBox{
+    -- These buttons will be on the left-hand side of the screen
+    gui.Button{label = "Cancel"},
+    gui.Button{label = "< Back", expand = true, align_h = "left"},
+
+    -- These buttons will be on the right-hand side of the screen
+    gui.Button{label = "Next >"},
+    gui.Button{label = "Confirm"},
+}
+```
+
+You should not do this as it creates unnecessary boxes, and the label may be
+slightly off-centre (because label widths depend on screen size, DPI, etc
+and this code doesn't trigger the centering hack):
+
+```lua
+gui.HBox{
+    gui.Spacer{},
+    gui.Label{label="I am not properly centered!"},
+    gui.Spacer{},
+}
+```
+
+You should do this instead:
+
+```lua
+gui.Label{label="I am centered!", align_h = "centre"},
+```
+
+This applies to other elements as well, because using HBox and Spacer to centre
+elements creates unnecessary containers.
+
 ### Minetest formspec elements
 
 There is an auto-generated `elements.md` file which contains a list of elements
