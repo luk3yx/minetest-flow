@@ -374,7 +374,7 @@ local function expand(box)
         -- space if this is in a horizontal box.
         for node in pairs(expandable) do
             if node.type == "label" then
-                local align = node.algin_h or "auto"
+                local align = node.align_h or "auto"
                 if align == "centre" or align == "center" or align == "fill" or
                         (align == "auto" and node.expand) then
                     align_types.fill(node, "x", "w", 0)
