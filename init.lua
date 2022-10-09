@@ -479,15 +479,20 @@ local function parse_callbacks(tree, ctx_form)
     for node in formspec_ast.walk(tree) do
         if node.type == "container" then
             if node.bgcolor then
+                local padding = node.padding or 0
                 table.insert(node, 1, {
                     type = "box", color = node.bgcolor,
-                    x = 0, y = 0, w = node.w, h = node.h,
+                    x = -padding, y = -padding,
+                    w = node.w + padding * 2, h = node.h + padding * 2,
                 })
             end
             if node.bgimg then
+                local padding = node.padding or 0
                 table.insert(node, 1, {
-                    type = "background", texture_name = node.bgimg,
-                    x = 0, y = 0, w = node.w, h = node.h,
+                    type = node.bgimg_middle and "background9" or "background",
+                    texture_name = node.bgimg, middle_x = node.bgimg_middle,
+                    x = -padding, y = -padding,
+                    w = node.w + padding * 2, h = node.h + padding * 2,
                 })
             end
             if node.on_quit then
@@ -501,7 +506,8 @@ local function parse_callbacks(tree, ctx_form)
         elseif seen_scroll_container then
             -- Work around a Minetest bug with scroll containers not scrolling
             -- backgrounds.
-            if node.type == "background" and not node.auto_clip then
+            if (node.type == "background" or node.type == "background9") and
+                    not node.auto_clip then
                 node.type = "image"
             end
         elseif node.type == "scroll_container" then
