@@ -396,11 +396,11 @@ end
 -- Renders the GUI into hopefully valid AST
 -- This won't fill in names
 local function render_ast(node)
-    local t1 = minetest.get_us_time()
+    local t1 = DEBUG_MODE and minetest.get_us_time()
     local w, h = apply_padding(node, 0.3, 0.3, 0.6, 0.6)
-    local t2 = minetest.get_us_time()
+    local t2 = DEBUG_MODE and minetest.get_us_time()
     expand(node)
-    local t3 = minetest.get_us_time()
+    local t3 = DEBUG_MODE and minetest.get_us_time()
     local res = {
         formspec_version = 5,
         {type = "size", w = w, h = h},
@@ -566,6 +566,11 @@ local function parse_callbacks(tree, ctx_form)
 
             callbacks[node_name] = node.on_event
             node.on_event = nil
+        end
+
+        if node._after_positioned then
+            node:_after_positioned()
+            node._after_positioned = nil
         end
     end
     return callbacks, saved_fields
@@ -874,25 +879,40 @@ function gui.ScrollableVBox(def)
     def.expand = true
     h = h or min(inner_h, 5)
 
+    local scrollbar = {
+        w = 0.5, h = 0.5, orientation = "vertical",
+        name = scrollbar_name,
+    }
+
+    -- Allow properties of the scrollbar (such as the width) to be overridden
+    if def.custom_scrollbar then
+        for k, v in pairs(def.custom_scrollbar) do
+            scrollbar[k] = v
+        end
+    end
+
+    local opts = {}
     return gui.HBox {
         align_h = align_h,
         align_v = align_v,
         expand = expand_box,
-        {
-            type = "scroll_container",
+
+        gui.ScrollContainer{
             expand = true,
             w = w or inner_w,
             h = h,
             scrollbar_name = scrollbar_name,
             orientation = "vertical",
             def,
+
+            -- Calculate the scrollbar maximum after the scroll container is
+            -- expanded
+            _after_positioned = function(self)
+                opts.max = max(inner_h - self.h + 0.05, 0) * 10
+            end,
         },
-        gui.ScrollbarOptions{opts = {max = max(inner_h - h + 0.05, 0) * 10}},
-        gui.Scrollbar{
-            w = 0.5, h = 0.5,
-            orientation = "vertical",
-            name = scrollbar_name,
-        }
+        gui.ScrollbarOptions{opts = opts},
+        gui.Scrollbar(scrollbar)
     }
 end
 
