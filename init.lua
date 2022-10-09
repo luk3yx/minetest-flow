@@ -909,6 +909,7 @@ function gui.ScrollableVBox(def)
             -- expanded
             _after_positioned = function(self)
                 opts.max = max(inner_h - self.h + 0.05, 0) * 10
+                opts.thumbsize = (self.h / inner_h) * (inner_h - self.h) * 10
             end,
         },
         gui.ScrollbarOptions{opts = opts},
