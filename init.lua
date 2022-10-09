@@ -153,7 +153,7 @@ end
 
 local invisible_elems = {
     style = true, listring = true, scrollbaroptions = true, tableoptions = true,
-    tablecolumns = true, tooltip = true, style_type = true,
+    tablecolumns = true, tooltip = true, style_type = true, set_focus = true,
 }
 
 local DEFAULT_SPACING = 0.2
@@ -328,12 +328,16 @@ local function expand(box)
     local free_space = box[w]
     local expandable = {}
     local expand_count = 0
+    local first = true
     for i, node in ipairs(box) do
         local width, height = node[w] or 0, node[h] or 0
         if not invisible_elems[node.type] then
-            if i > 1 then
+            if first then
+                first = false
+            else
                 free_space = free_space - (box.spacing or DEFAULT_SPACING)
             end
+
             if node.type == "list" then
                 width = width * 1.25 - 0.25
                 height = height * 1.25 - 0.25
