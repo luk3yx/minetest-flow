@@ -854,7 +854,7 @@ function gui.ScrollableVBox(def)
     local scrollbar_name = "_scrollbar-" .. assert(
         def.name, "Please provide a name for all ScrollableVBox elements!"
     )
-    local align_h, align_v, expand = def.align_h, def.align_v, def.expand
+    local align_h, align_v, expand_box = def.align_h, def.align_v, def.expand
 
     def.type = "vbox"
     def.x, def.y = 0, 0
@@ -867,7 +867,7 @@ function gui.ScrollableVBox(def)
     return gui.HBox {
         align_h = align_h,
         align_v = align_v,
-        expand = expand,
+        expand = expand_box,
         {
             type = "scroll_container",
             expand = true,
