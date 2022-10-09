@@ -153,7 +153,7 @@ end
 
 local invisible_elems = {
     style = true, listring = true, scrollbaroptions = true, tableoptions = true,
-    tablecolumns = true, tooltip = true,
+    tablecolumns = true, tooltip = true, style_type = true,
 }
 
 local DEFAULT_SPACING = 0.2
