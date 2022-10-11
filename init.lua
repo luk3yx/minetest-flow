@@ -412,6 +412,17 @@ local function render_ast(node)
             close_on_enter = false,
         }
     end
+
+    -- Add the root element's background image as a fullscreen one
+    if node.bgimg then
+        res[#res + 1] = {
+            type = node.bgimg_middle and "background9" or "background",
+            texture_name = node.bgimg, middle_x = node.bgimg_middle,
+            x = 0, y = 0, w = 0, h = 0, auto_clip = true,
+        }
+        node.bgimg = nil
+    end
+
     res[#res + 1] = node
 
     if DEBUG_MODE then
