@@ -1,4 +1,4 @@
--- Debugging
+-- You can run /flow-example in singleplayer to open this form
 local gui = flow.widgets
 
 local elements = {"box", "label", "image", "field", "checkbox", "list"}

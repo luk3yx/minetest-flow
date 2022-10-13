@@ -969,23 +969,26 @@ function gui_mt.__newindex()
 end
 
 local modpath = minetest.get_modpath("flow")
-local example_form
-minetest.register_chatcommand("flow-example", {
-    privs = {server = true},
-    help = "Shows an example formspec",
-    func = function(name)
-        -- Only load example.lua when it's needed
-        if not example_form then
-            example_form = dofile(modpath .. "/example.lua")
-        end
-        example_form:show(name)
-    end,
-})
+if minetest.is_singleplayer() then
+    local example_form
+    minetest.register_chatcommand("flow-example", {
+        privs = {server = true},
+        help = "Shows an example formspec",
+        func = function(name)
+            -- Only load example.lua when it's needed
+            if not example_form then
+                example_form = dofile(modpath .. "/example.lua")
+            end
+            example_form:show(name)
+        end,
+    })
+end
 
 if DEBUG_MODE then
     local f, err = loadfile(modpath .. "/test-fs.lua")
-    if not f then
+    if f then
+        return f()
+    else
         minetest.log("error", "[flow] " .. tostring(err))
     end
-    return f()
 end
