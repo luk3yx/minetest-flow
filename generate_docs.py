@@ -2,6 +2,7 @@ from ruamel.yaml import YAML
 import collections, re, requests
 yaml = YAML(typ='safe')
 
+
 def fetch_elements():
     res = requests.get('https://github.com/luk3yx/minetest-formspec_ast/raw/'
                        'master/elements.yaml')
@@ -24,7 +25,7 @@ def search_for_fields(obj):
 
 def element_to_docs(element_name, variants):
     flow_name = re.sub(r'_(.)', lambda m: m.group(1).upper(),
-                         element_name.capitalize())
+                       element_name.capitalize())
 
     res = [
         f'### `gui.{flow_name}`\n',
