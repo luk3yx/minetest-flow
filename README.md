@@ -217,8 +217,10 @@ elements creates unnecessary containers.
 
 ### Minetest formspec elements
 
-There is an auto-generated `elements.md` file which contains a list of elements
-and parameters. Elements in this list haven't been tested and might not work.
+There is an auto-generated
+[`elements.md`](https://gitlab.com/luk3yx/minetest-flow/-/blob/main/elements.md)
+file which contains a list of elements and parameters. Elements in this list
+haven't been tested and might not work.
 
 #### Dynamic element types
 
