@@ -242,9 +242,9 @@ padding of 0.
 is between elements inside the box. If unspecified, `spacing` will default to
 0.2.
 
-Container elements (HBox and VBox) can also have `bgcolor`, `bgimg`, and
-`bgimg_middle` parameters that specify a background for the container. The
-background will be drawn behind any padding that the container has.
+Container elements (HBox and VBox) can optionally have `bgimg` and `bgimg_middle`
+parameters that specify a background for the container. The background will be
+drawn behind any padding that the container has.
 
 Example:
 
@@ -252,7 +252,8 @@ Example:
 gui.VBox{
     padding = 0.5,
     spacing = 0.1,
-    bgcolor = "#888",
+
+    -- bgimg can be used without bgimg_middle
     bgimg = "air.png",
     bgimg_middle = 2,
 
@@ -261,7 +262,7 @@ gui.VBox{
 }
 ```
 
-![Screenshot](https://user-images.githubusercontent.com/3182651/198192239-2c161f4f-2195-4a2b-904f-6a8baa4801c2.png)
+![Screenshot](https://user-images.githubusercontent.com/3182651/198194381-4812c0fa-1909-48f8-b50d-6713c4c126ec.png)
 
 The padding around the VBox is 0.5 and the spacing between the buttons inside
 it is 0.1.
