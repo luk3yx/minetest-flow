@@ -106,6 +106,10 @@ gui.VBox{
 }
 ```
 
+Elements inside boxes have a spacing of 0.2 between them. To change this, you
+can add `spacing = <number>` to the box definition. For example, `spacing = 0`
+will remove all spacing between the elements.
+
 #### `gui.HBox`
 
 Like `gui.VBox` but stacks elements horizontally instead.
@@ -215,3 +219,70 @@ elements creates unnecessary containers.
 
 There is an auto-generated `elements.md` file which contains a list of elements
 and parameters. Elements in this list haven't been tested and might not work.
+
+#### Dynamic element types
+
+If you want to generate element types from a variable, you can use
+`{type = "label", label = "Hello world!"}` instead of
+`gui.Label{label="Hello world!"}`. HBoxes and VBoxes can be created
+this way as well (with `type = "hbox"` and `type = "vbox"`), however other
+layouting elements (such as ScrollableVBox and Spacer)
+won't work correctly.
+
+An example of this is in `example.lua`.
+
+## Padding, spacing, and backgrounds
+
+All elements can have a `padding` value, which will add the specified amount of
+padding around the element. The "root" element of the form (the one returned by
+`build_func`) has a default padding of 0.3, everything else has a default
+padding of 0.
+
+`HBox` and `VBox` have a `spacing` field which specifies how much spacing there
+is between elements inside the box. If unspecified, `spacing` will default to
+0.2.
+
+Container elements (HBox and VBox) can also have `bgcolor`, `bgimg`, and
+`bgimg_middle` parameters that specify a background for the container. The
+background will be drawn behind any padding that the container has.
+
+Example:
+
+```lua
+gui.VBox{
+    padding = 0.5,
+    spacing = 0.1,
+    bgcolor = "#888",
+    bgimg = "air.png",
+    bgimg_middle = 2,
+
+    gui.Button{label="Button 1"},
+    gui.Button{label="Button 2"},
+}
+```
+
+![Screenshot](https://user-images.githubusercontent.com/3182651/198192239-2c161f4f-2195-4a2b-904f-6a8baa4801c2.png)
+
+The padding around the VBox is 0.5 and the spacing between the buttons inside
+it is 0.1.
+
+## Styling forms
+
+To style forms, you use the `gui.Style` and `gui.StyleType` elements:
+
+```lua
+gui.Style{
+    selectors = {"btn1"},
+    props = {
+        bgimg = "button.png",
+        border = false,
+    }
+},
+
+gui.Button{
+    name = "btn1",
+    label = "Button",
+},
+```
+
+The style elements are invisible and won't affect padding.

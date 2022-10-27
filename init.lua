@@ -123,13 +123,8 @@ function size_getters.checkbox(node)
     return w + 0.4, h
 end
 
-local function apply_padding(node, x, y, extra_padding)
+local function apply_padding(node, x, y)
     local w, h = get_and_fill_in_sizes(node)
-
-    if extra_padding then
-        w = w + extra_padding
-        h = h + extra_padding
-    end
 
     if node.type == "label" or node.type == "checkbox" then
         y = y + LABEL_OFFSET
@@ -140,11 +135,12 @@ local function apply_padding(node, x, y, extra_padding)
         h = h + node._padding_top
     end
 
-    if node.padding then
-        x = x + node.padding
-        y = y + node.padding
-        w = w + node.padding * 2
-        h = h + node.padding * 2
+    local padding = node.padding
+    if padding then
+        x = x + padding
+        y = y + padding
+        w = w + padding * 2
+        h = h + padding * 2
     end
 
     node.x, node.y = x, y
@@ -397,7 +393,8 @@ end
 -- This won't fill in names
 local function render_ast(node)
     local t1 = DEBUG_MODE and minetest.get_us_time()
-    local w, h = apply_padding(node, 0.3, 0.3, 0.6, 0.6)
+    node.padding = node.padding or 0.3
+    local w, h = apply_padding(node, 0, 0)
     local t2 = DEBUG_MODE and minetest.get_us_time()
     expand(node)
     local t3 = DEBUG_MODE and minetest.get_us_time()
