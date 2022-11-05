@@ -431,15 +431,6 @@ local function render_ast(node)
     return res
 end
 
--- Try and create short (2 byte) names
-local function get_identifier(i)
-    if i > 127 then
-        -- Give up and use long (but unique) names
-        return '\1\1' .. tostring(i)
-    end
-    return string.char(1, i)
-end
-
 local function chain_cb(f1, f2)
     return function(...)
         f1(...)
@@ -483,8 +474,7 @@ local sensible_defaults = {
 }
 
 -- Removes on_event from a formspec_ast tree and returns a callbacks table
-local function parse_callbacks(tree, ctx_form)
-    local i = 0
+local function parse_callbacks(tree, ctx_form, auto_name_id)
     local callbacks = {}
     local saved_fields = {}
     local seen_scroll_container = false
@@ -567,9 +557,9 @@ local function parse_callbacks(tree, ctx_form)
 
         if node.on_event then
             if not node_name then
-                i = i + 1
-                node_name = get_identifier(i)
+                node_name = ("\1%x"):format(auto_name_id)
                 node.name = node_name
+                auto_name_id = auto_name_id + 1
             end
 
             callbacks[node_name] = node.on_event
@@ -581,7 +571,7 @@ local function parse_callbacks(tree, ctx_form)
             node._after_positioned = nil
         end
     end
-    return callbacks, saved_fields
+    return callbacks, saved_fields, auto_name_id
 end
 
 local gui_mt = {
@@ -626,7 +616,7 @@ end
 
 
 -- Renders a GUI into a formspec_ast tree and a table with callbacks.
-function Form:_render(player, ctx, formspec_version)
+function Form:_render(player, ctx, formspec_version, id1)
     local used_ctx_vars = {}
 
     -- Wrap ctx.form
@@ -654,7 +644,7 @@ function Form:_render(player, ctx, formspec_version)
     ctx.form = orig_form
 
     local tree = render_ast(box)
-    local callbacks, saved_fields = parse_callbacks(tree, orig_form)
+    local callbacks, saved_fields, id2 = parse_callbacks(tree, orig_form, id1)
 
     local redraw_if_changed = {}
     for var in pairs(used_ctx_vars) do
@@ -672,6 +662,7 @@ function Form:_render(player, ctx, formspec_version)
         saved_fields = saved_fields,
         redraw_if_changed = redraw_if_changed,
         ctx = ctx,
+        auto_name_id = id2,
     }
 end
 
@@ -685,10 +676,19 @@ function Form:show(player, ctx)
     local t = minetest.get_us_time()
     ctx = ctx or {}
 
+    -- The numbering of automatically named elements is continued from previous
+    -- iterations of the form to work around race conditions
     local name = player:get_player_name()
+    local old_form_info = open_formspecs[name]
+    local auto_name_id = 0
+    if old_form_info and old_form_info.self == self and
+            old_form_info.auto_name_id < 1e6 then
+        auto_name_id = old_form_info.auto_name_id
+    end
+
     local info = minetest.get_player_information(name)
     local tree, form_info = self:_render(player, ctx,
-        info and info.formspec_version)
+        info and info.formspec_version, auto_name_id)
 
     local t2 = minetest.get_us_time()
     local fs = assert(formspec_ast.unparse(tree))
@@ -727,7 +727,7 @@ function flow.make_gui(build_func)
     local id = #used_ids + 1
     used_ids[id] = gui
 
-    res._formname = formname_prefix .. get_identifier(id)
+    res._formname = formname_prefix .. id
     res._build = build_func
 
     return res
