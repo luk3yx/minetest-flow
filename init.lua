@@ -644,7 +644,9 @@ function Form:_render(player, ctx, formspec_version, id1)
     ctx.form = orig_form
 
     local tree = render_ast(box)
-    local callbacks, saved_fields, id2 = parse_callbacks(tree, orig_form, id1)
+    local callbacks, saved_fields, id2 = parse_callbacks(
+        tree, orig_form, id1 or 0
+    )
 
     local redraw_if_changed = {}
     for var in pairs(used_ctx_vars) do
@@ -680,7 +682,7 @@ function Form:show(player, ctx)
     -- iterations of the form to work around race conditions
     local name = player:get_player_name()
     local old_form_info = open_formspecs[name]
-    local auto_name_id = 0
+    local auto_name_id
     if old_form_info and old_form_info.self == self and
             old_form_info.auto_name_id < 1e6 then
         auto_name_id = old_form_info.auto_name_id
