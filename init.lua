@@ -547,6 +547,9 @@ local function parse_callbacks(tree, ctx_form, auto_name_id)
 
                     saved_fields[node_name] = default_field_value_transformer
                 elseif value == nil then
+                    if value_field == "selected_idx" and not node[value_field] then
+                        node[value_field] = sensible_defaults[value_field]
+                    end
                     ctx_form[node_name] = node[value_field] or
                         sensible_defaults[value_field]
                 else
