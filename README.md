@@ -3,6 +3,9 @@
 An experimental layout manager and formspec API replacement for Minetest.
 Vaguely inspired by Flutter and GTK.
 
+[Online tutorial/demo](https://luk3yx.gitlab.io/minetest-flow-playground/)
+([source](https://gitlab.com/luk3yx/minetest-flow-playground))
+
 ## Features
 
  - No manual positioning of elements.
