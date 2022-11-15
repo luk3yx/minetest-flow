@@ -33,11 +33,11 @@ end
 
 local LABEL_HEIGHT = 0.4
 local LABEL_OFFSET = LABEL_HEIGHT / 2
-local CHARS_PER_UNIT = 4.8 -- 5
+local CHAR_WIDTH = 0.21 -- 0.2
 local function get_lines_size(lines)
     local w = 0
     for _, line in ipairs(lines) do
-        w = max(w, #strip_escape_sequences(line) / CHARS_PER_UNIT)
+        w = max(w, #strip_escape_sequences(line) * CHAR_WIDTH)
     end
     return w, LABEL_HEIGHT * #lines
 end
@@ -106,7 +106,7 @@ size_getters.pwdfield = size_getters.field
 size_getters.textarea = size_getters.field
 
 function size_getters.vertlabel(node)
-    return 1 / CHARS_PER_UNIT, #node.label * LABEL_HEIGHT
+    return CHAR_WIDTH, #node.label * LABEL_HEIGHT
 end
 
 function size_getters.textlist(node)
