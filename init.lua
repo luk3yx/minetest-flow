@@ -338,7 +338,8 @@ local function expand(box)
                 width = width * 1.25 - 0.25
                 height = height * 1.25 - 0.25
             end
-            free_space = free_space - width
+            free_space = free_space - width - (node.padding or 0) * 2 -
+                (y == "x" and node._padding_top or 0)
 
             if node.expand then
                 expandable[node] = i
@@ -359,8 +360,7 @@ local function expand(box)
     if free_space > 0 then
         local extra_space = free_space / expand_count
         for node, node_idx in pairs(expandable) do
-            align_types[node[align_h] or "auto"](node, x, w,
-                extra_space - (node.padding or 0) * 2)
+            align_types[node[align_h] or "auto"](node, x, w, extra_space)
 
             -- Shift other elements along
             for j = node_idx + 1, #box do
