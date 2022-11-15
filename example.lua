@@ -194,12 +194,14 @@ local my_gui = flow.make_gui(function(player, ctx)
             },
         },
         gui.HBox{
-            gui.Checkbox{name = "expand", label = "Expand"},
-            gui.Checkbox{name = "vbox", label = "Use vbox instead of hbox"},
-        },
-        gui.HBox{
-            gui.Checkbox{name = "box2", label = "Second box"},
-            gui.Checkbox{name = "expand_box2", label = "Expand second box"},
+            gui.VBox{
+                gui.Checkbox{name = "expand", label = "Expand"},
+                gui.Checkbox{name = "box2", label = "Second box"},
+            },
+            gui.VBox{
+                gui.Checkbox{name = "vbox", label = "Use vbox instead of hbox"},
+                gui.Checkbox{name = "expand_box2", label = "Expand second box"},
+            },
         },
         try_it_yourself_box,
     }
