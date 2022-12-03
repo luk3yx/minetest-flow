@@ -12,8 +12,8 @@ Vaguely inspired by Flutter and GTK.
 
 #### Layouting
 
- - Automatic layouting using `HBox` and `VBox` elements
  - No manual positioning of elements.
+ - Automatic layouting using `HBox` and `VBox` containers
  - Some elements have an automatic size.
  - The size of elements can optionally expand to fit larger spaces
 
