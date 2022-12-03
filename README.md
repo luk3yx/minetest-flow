@@ -1,5 +1,7 @@
 # flow
 
+[![ContentDB](https://content.minetest.net/packages/luk3yx/flow/shields/downloads/)](https://content.minetest.net/packages/luk3yx/flow/)
+
 An experimental layout manager and formspec API replacement for Minetest.
 Vaguely inspired by Flutter and GTK.
 
@@ -8,13 +10,20 @@ Vaguely inspired by Flutter and GTK.
 
 ## Features
 
+#### Layouting
+
+ - Automatic layouting using `HBox` and `VBox` elements
  - No manual positioning of elements.
  - Some elements have an automatic size.
  - The size of elements can optionally expand to fit larger spaces
- - No form names. Form names are still used internally, however they are hidden from the API.
+
+#### Other features
+
+ - No form names. Form names are still used internally, however they are
+   hidden from the API.
  - No having to worry about state.
- - Values of fields, scrollbars, checkboxes, etc are remembered when redrawing
-   a formspec and are automatically applied.
+ - Values of fields, scrollbars, checkboxes, etc are remembered when
+   redrawing a form and are automatically applied.
 
 ## Limitations
 
@@ -80,6 +89,7 @@ my_gui:close_hud(player)
 These utilities likely aren't compatible with flow.
 
  - [fs_layout](https://github.com/fluxionary/minetest-fs_layout/) is another mod library that does automatic formspec element positioning.
+ - [fslib](https://content.minetest.net/packages/LMD/fslib/) is a small mod library that lets you build formspec strings.
  - [Just_Visiting's formspec editor](https://content.minetest.net/packages/Just_Visiting/formspec_editor) is a Minetest (sub)game that lets you edit formspecs and preview them as you go
  - [kuto](https://github.com/TerraQuest-Studios/kuto/) is a formspec library that has some extra widgets/components and has a callback API. Some automatic sizing can be done for buttons.
    - It may be possible to use kuto's components with flow somehow as they both use formspec_ast internally.
