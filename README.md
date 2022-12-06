@@ -75,6 +75,10 @@ end)
 -- Note that `player` is a player object and not a player name.
 my_gui:show(player)
 
+-- You can provide an initial value for `ctx` by adding a second parameter to
+-- show(). In the below example, `ctx.value` will be "test".
+my_gui:show(player, {value = "test"})
+
 -- Close the form
 my_gui:close(player)
 
