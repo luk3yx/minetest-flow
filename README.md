@@ -97,7 +97,7 @@ indicator), you can use `form:update` to update the form without resetting
 Due to formspec limitations, players may lose text typed into fields that
 hasn't been sent to the server when `form:update` is called.
 
-```
+```lua
 -- Re-shows the form for one player if they have the form open
 my_gui:update(player)
 
@@ -118,7 +118,7 @@ my_gui:update_where(function() return true end)
 
 Inside an `on_event` handler, you can use `return true` instead.
 
-```
+```lua
 gui.Button{
     label = "Update form",
     on_event = function(player, ctx)
