@@ -88,6 +88,45 @@ my_gui:show_hud(player)
 my_gui:close_hud(player)
 ```
 
+### Updating forms
+
+If some data displayed inside a form changes (for example a timer or progress
+indicator), you can use `form:update` to update the form without resetting
+`ctx` or showing the form again if the player has closed it.
+
+Due to formspec limitations, players may lose text typed into fields that
+hasn't been sent to the server when `form:update` is called.
+
+```
+-- Re-shows the form for one player if they have the form open
+my_gui:update(player)
+
+-- Re-shows the form for all players that have the form open and where
+-- ctx.test == 123
+my_gui:update_where(function(player, ctx)
+    return ctx.test == 123
+end)
+
+-- Re-shows the form for all players with the "server" privilege
+my_gui:update_where(function(player, ctx)
+    return minetest.check_player_privs(player, "server")
+end)
+
+-- Re-shows the form for all players with the form open
+my_gui:update_where(function() return true end)
+```
+
+Inside an `on_event` handler, you can use `return true` instead.
+
+```
+gui.Button{
+    label = "Update form",
+    on_event = function(player, ctx)
+        return true
+    end,
+}
+```
+
 ## Other formspec libraries/utilities
 
 These utilities likely aren't compatible with flow.
@@ -105,8 +144,8 @@ You should do `local gui = flow.widgets` in your code.
 
 ### Layouting elements
 
-These elements are used to lay out elements in the formspec. They don't have a
-direct equivalent in Minetest formspecs.
+These elements are used to lay out elements in the form. They don't have a
+direct equivalent in formspecs.
 
 #### `gui.VBox`
 

@@ -199,6 +199,7 @@ function size_getters.hbox(hbox)
 end
 
 function size_getters.padding(node)
+    minetest.log("warning", "[flow] The gui.Padding element is deprecated")
     assert(#node == 1, "Padding can only have one element inside.")
     local n = node[1]
     local x, y = apply_padding(n, 0, 0)
@@ -599,6 +600,7 @@ local gui_mt = {
 }
 local gui = setmetatable({
     embed = function(fs, w, h)
+        minetest.log("warning", "[flow] gui.embed() is deprecated")
         if type(fs) ~= "table" then
             fs = formspec_ast.parse(fs)
         end
@@ -676,11 +678,13 @@ end
 local open_formspecs = {}
 function Form:show(player, ctx)
     if type(player) == "string" then
+        minetest.log("warning",
+            "[flow] Calling form:show() with a player name is deprecated")
         player = minetest.get_player_by_name(player)
         if not player then return end
     end
 
-    local t = minetest.get_us_time()
+    local t = DEBUG_MODE and minetest.get_us_time()
     ctx = ctx or {}
 
     -- The numbering of automatically named elements is continued from previous
@@ -697,9 +701,9 @@ function Form:show(player, ctx)
     local tree, form_info = self:_render(player, ctx,
         info and info.formspec_version, auto_name_id)
 
-    local t2 = minetest.get_us_time()
+    local t2 = DEBUG_MODE and minetest.get_us_time()
     local fs = assert(formspec_ast.unparse(tree))
-    local t3 = minetest.get_us_time()
+    local t3 = DEBUG_MODE and minetest.get_us_time()
 
     open_formspecs[name] = form_info
     if DEBUG_MODE then
@@ -719,6 +723,24 @@ end
 
 function Form:close_hud(player)
     hud_fs.close_hud(player, self._formname)
+end
+
+function Form:update(player)
+    local form_info = open_formspecs[player:get_player_name()]
+    if form_info and form_info.self == self then
+        self:show(player, form_info.ctx)
+    end
+end
+
+function Form:update_where(func)
+    for name, form_info in pairs(open_formspecs) do
+        if form_info.self == self then
+            local player = minetest.get_player_by_name(name)
+            if player and func(player, form_info.ctx) then
+                self:show(player, form_info.ctx)
+            end
+        end
+    end
 end
 
 local used_ids = {}
