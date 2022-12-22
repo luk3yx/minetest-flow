@@ -403,6 +403,19 @@ local function render_ast(node)
         formspec_version = 5,
         {type = "size", w = w, h = h},
     }
+
+    -- TODO: Consider a nicer place to put these parameters
+    if node.no_prepend then
+        res[#res + 1] = {type = "no_prepend"}
+    end
+    if node.fbgcolor then
+        res[#res + 1] = {
+            type = "bgcolor",
+            bgcolor = node.fbgcolor,
+            fullscreen = true
+        }
+    end
+
     for field in formspec_ast.find(node, 'field') do
         res[#res + 1] = {
             type = 'field_close_on_enter',
