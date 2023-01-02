@@ -562,18 +562,28 @@ local function parse_callbacks(tree, ctx_form, auto_name_id)
                     node.selected_idx = node.selected_idx or 1
                     saved_fields[node_name] = default_field_value_transformer
                 elseif value == nil then
-                    if value_field == "selected_idx" and
-                            not node[value_field] then
-                        node[value_field] = sensible_defaults[value_field]
+                    -- If ctx.form[node_name] doesn't exist, then check whether
+                    -- a default value is specified.
+                    local default_value = node[value_field]
+                    local sensible_default = sensible_defaults[value_field]
+                    if default_value == nil then
+                        -- If the element doesn't have a default set, set it to
+                        -- the sensible default value and update ctx.form in
+                        -- case the client doesn't send the field value back.
+                        node[value_field] = sensible_default
+                        ctx_form[node_name] = sensible_default
+                    else
+                        -- Update ctx.form to the default value
+                        ctx_form[node_name] = default_value
                     end
-                    ctx_form[node_name] = node[value_field] or
-                        sensible_defaults[value_field]
                 else
-                    node[value_field] = value or sensible_defaults[value_field]
+                    -- Set the node's value to the one saved in ctx.form
+                    node[value_field] = value
                 end
             end
         end
 
+        -- Add the on_event callback (if any) to the callbacks table
         if node.on_event then
             if not node_name then
                 node_name = ("\1%x"):format(auto_name_id)
@@ -585,6 +595,7 @@ local function parse_callbacks(tree, ctx_form, auto_name_id)
             node.on_event = nil
         end
 
+        -- Call _after_positioned (used internally for ScrollableVBox)
         if node._after_positioned then
             node:_after_positioned()
             node._after_positioned = nil
@@ -759,8 +770,6 @@ end
 local used_ids = {}
 setmetatable(used_ids, {__mode = "v"})
 
-local formname_prefix = minetest.get_current_modname() .. ":"
-
 local form_mt = {__index = Form}
 function flow.make_gui(build_func)
     local res = setmetatable({}, form_mt)
@@ -769,7 +778,7 @@ function flow.make_gui(build_func)
     local id = #used_ids + 1
     used_ids[id] = gui
 
-    res._formname = formname_prefix .. id
+    res._formname = ("flow:%x"):format(id)
     res._build = build_func
 
     return res
@@ -1018,7 +1027,7 @@ if minetest.is_singleplayer() then
             if not example_form then
                 example_form = dofile(modpath .. "/example.lua")
             end
-            example_form:show(name)
+            example_form:show(minetest.get_player_by_name(name))
         end,
     })
 end
@@ -1027,7 +1036,6 @@ if DEBUG_MODE then
     local f, err = loadfile(modpath .. "/test-fs.lua")
     if f then
         return f()
-    else
-        minetest.log("error", "[flow] " .. tostring(err))
     end
+    minetest.log("error", "[flow] " .. tostring(err))
 end
