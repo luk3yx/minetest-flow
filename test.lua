@@ -1,3 +1,5 @@
+-- luacheck: ignore
+
 -- Load formspec_ast
 _G.FORMSPEC_AST_PATH = '../formspec_ast'
 dofile(FORMSPEC_AST_PATH .. '/init.lua')
