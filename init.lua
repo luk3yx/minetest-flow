@@ -384,9 +384,19 @@ local function expand(box)
         end
     end
 
-    -- Recursively expand
-    for _, node in ipairs(box) do
-        expand(node)
+    -- Recursively expand and remove any invisible nodes
+    for i = #box, 1, -1 do
+        local node = box[i]
+        -- node.visible ~= nil and not node.visible
+        -- WARNING: I'm not sure whether this should be called `visible`, I may
+        -- end up renaming it in the future. Use with caution.
+        if node.visible == false then
+            -- There's no need to try and expand anything inside invisible
+            -- nodes since it won't affect the overall size.
+            table.remove(box, i)
+        else
+            expand(node)
+        end
     end
 end
 
@@ -1004,10 +1014,16 @@ end
 
 function gui.Spacer(def)
     def.type = "container"
+    assert(#def == 0)
+
+    -- Spacers default to expanding
     if def.expand == nil then
         def.expand = true
     end
-    assert(#def == 0)
+
+    -- Prevent an empty container from being added to the resulting form
+    def.visible = false
+
     return def
 end
 

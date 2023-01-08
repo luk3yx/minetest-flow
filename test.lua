@@ -170,4 +170,62 @@ describe("Flow", function()
 
         assert.same(state.callbacks, {btn = func})
     end)
+
+    it("handles visible = false", function()
+        test_render(gui.VBox{
+            min_w = 10, min_h = 10,
+
+            gui.HBox{
+                spacing = 0.5,
+                gui.Box{w = 1, h = 1, color = "red"},
+                gui.Box{w = 1, h = 1, color = "green", visible = false},
+                gui.Box{w = 1, h = 1, color = "blue"},
+            },
+
+            gui.HBox{
+                gui.Box{w = 1, h = 1, color = "red"},
+                gui.Box{w = 1, h = 1, color = "green", visible = false,
+                    expand = true},
+                gui.Box{w = 1, h = 1, color = "blue"},
+            },
+
+            gui.HBox{
+                gui.Box{w = 1, h = 1, color = "grey"},
+                gui.Spacer{},
+                gui.Box{w = 1, h = 1, color = "grey"},
+            },
+
+            gui.HBox{
+                gui.Box{w = 1, h = 1, color = "red", expand = true},
+                gui.Box{w = 1, h = 1, color = "green", visible = false},
+                gui.Box{w = 1, h = 1, color = "blue"},
+            },
+
+            gui.Box{w = 1, h = 1, expand = true},
+        }, [[
+            size[10.6,10.6]
+
+            container[0.3,0.3]
+            box[0,0;1,1;red]
+            box[3,0;1,1;blue]
+            container_end[]
+
+            container[0.3,1.5]
+            box[0,0;1,1;red]
+            box[9,0;1,1;blue]
+            container_end[]
+
+            container[0.3,2.7]
+            box[0,0;1,1;grey]
+            box[9,0;1,1;grey]
+            container_end[]
+
+            container[0.3,3.9]
+            box[0,0;7.6,1;red]
+            box[9,0;1,1;blue]
+            container_end[]
+
+            box[0.3,5.1;10,5.2;]
+        ]])
+    end)
 end)
