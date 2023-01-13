@@ -345,3 +345,37 @@ gui.Button{
 ```
 
 The style elements are invisible and won't affect padding.
+
+## Experimental features
+
+These features might be broken in the future.
+
+### Hiding elements
+
+Elements inside boxes can have `visible = false` set to hide them from the
+player. Elements hidden this way will still take up space like with
+`visibility: hidden;` in CSS.
+
+### `no_prepend[]`
+
+You can set `no_prepend = true` on the "root" element to disable formspec
+prepends.
+
+Example:
+
+```lua
+local my_gui = flow.make_gui(function(player, ctx)
+    return gui.VBox{
+        no_prepend = true,
+
+        gui.Button{label = "Button 1"},
+
+        -- There will be an empty space where the second button would be
+        gui.Button{label = "Button 2", visible = false},
+
+        gui.Button{label = "Button 3"},
+    }
+end)
+```
+
+![Screenshot](https://user-images.githubusercontent.com/3182651/212222545-baee3669-15cd-410d-a638-c63b65a8811b.png)

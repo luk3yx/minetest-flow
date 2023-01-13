@@ -419,6 +419,7 @@ local function render_ast(node)
         res[#res + 1] = {type = "no_prepend"}
     end
     if node.fbgcolor then
+        -- TODO: Fix this
         res[#res + 1] = {
             type = "bgcolor",
             bgcolor = node.fbgcolor,
