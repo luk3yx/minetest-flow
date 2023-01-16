@@ -832,13 +832,14 @@ local function on_fs_input(player, formname, fields)
         end
     end
 
-    if open_formspecs[name] ~= form_info then return end
+    if open_formspecs[name] ~= form_info then return true end
 
     if fields.quit then
         open_formspecs[name] = nil
     elseif redraw_fs then
         update_form(form_info.self, player, form_info)
     end
+    return true
 end
 
 local function on_leaveplayer(player)
