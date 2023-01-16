@@ -495,7 +495,7 @@ local default_value_fields = {
 
 
 local sensible_defaults = {
-    default = "", selected = false, selected_idx = 1, value = 1,
+    default = "", selected = false, selected_idx = 1, value = 0,
 }
 
 -- Removes on_event from a formspec_ast tree and returns a callbacks table
@@ -701,7 +701,6 @@ function Form:_render(player, ctx, formspec_version, id1)
 
     return tree, {
         self = self,
-        formname = self._formname,
         callbacks = callbacks,
         saved_fields = saved_fields,
         redraw_if_changed = redraw_if_changed,
@@ -711,6 +710,26 @@ function Form:_render(player, ctx, formspec_version, id1)
 end
 
 local open_formspecs = {}
+local function show_form(self, player, formname, ctx, auto_name_id)
+    local name = player:get_player_name()
+    -- local t = DEBUG_MODE and minetest.get_us_time()
+    local info = minetest.get_player_information(name)
+    local tree, form_info = self:_render(player, ctx,
+        info and info.formspec_version, auto_name_id)
+
+    -- local t2 = DEBUG_MODE and minetest.get_us_time()
+    local fs = assert(formspec_ast.unparse(tree))
+    -- local t3 = DEBUG_MODE and minetest.get_us_time()
+
+    form_info.formname = formname
+    open_formspecs[name] = form_info
+    -- if DEBUG_MODE then
+    --     print(t3 - t, t2 - t, t3 - t2)
+    -- end
+    minetest.show_formspec(name, formname, fs)
+end
+
+local next_formname = 0
 function Form:show(player, ctx)
     if type(player) == "string" then
         minetest.log("warning",
@@ -719,51 +738,47 @@ function Form:show(player, ctx)
         if not player then return end
     end
 
-    local t = DEBUG_MODE and minetest.get_us_time()
-    ctx = ctx or {}
+    -- Use a unique form name every time a new form is shown
+    show_form(self, player, ("flow:%x"):format(next_formname), ctx or {})
 
-    -- The numbering of automatically named elements is continued from previous
-    -- iterations of the form to work around race conditions
-    local name = player:get_player_name()
-    local old_form_info = open_formspecs[name]
-    local auto_name_id
-    if old_form_info and old_form_info.self == self and
-            old_form_info.auto_name_id < 1e6 then
-        auto_name_id = old_form_info.auto_name_id
-    end
-
-    local info = minetest.get_player_information(name)
-    local tree, form_info = self:_render(player, ctx,
-        info and info.formspec_version, auto_name_id)
-
-    local t2 = DEBUG_MODE and minetest.get_us_time()
-    local fs = assert(formspec_ast.unparse(tree))
-    local t3 = DEBUG_MODE and minetest.get_us_time()
-
-    open_formspecs[name] = form_info
-    if DEBUG_MODE then
-        print(t3 - t, t2 - t, t3 - t2)
-    end
-    minetest.show_formspec(name, self._formname, fs)
+    -- Form name collisions are theoretically possible but probably won't
+    -- happen in practice (and if they do the impact will be minimal)
+    next_formname = (next_formname + 1) % 2^53
 end
 
 function Form:show_hud(player, ctx)
     local tree = self:_render(player, ctx or {})
-    hud_fs.show_hud(player, self._formname, tree)
+    hud_fs.show_hud(player, self, tree)
 end
 
 function Form:close(player)
-    minetest.close_formspec(player:get_player_name(), self._formname)
+    local name = player:get_player_name()
+    local form_info = open_formspecs[name]
+    if form_info and form_info.self == self then
+        open_formspecs[name] = nil
+        minetest.close_formspec(name, form_info.formname)
+    end
 end
 
 function Form:close_hud(player)
-    hud_fs.close_hud(player, self._formname)
+    hud_fs.close_hud(player, self)
+end
+
+local function update_form(self, player, form_info)
+    -- The numbering of automatically named elements is continued from previous
+    -- iterations of the form to work around race conditions
+    local auto_name_id
+    if form_info.auto_name_id < 1e6 then
+        auto_name_id = form_info.auto_name_id
+    end
+
+    show_form(self, player, form_info.formname, form_info.ctx, auto_name_id)
 end
 
 function Form:update(player)
     local form_info = open_formspecs[player:get_player_name()]
     if form_info and form_info.self == self then
-        self:show(player, form_info.ctx)
+        update_form(self, player, form_info)
     end
 end
 
@@ -772,27 +787,15 @@ function Form:update_where(func)
         if form_info.self == self then
             local player = minetest.get_player_by_name(name)
             if player and func(player, form_info.ctx) then
-                self:show(player, form_info.ctx)
+                update_form(self, player, form_info)
             end
         end
     end
 end
 
-local used_ids = {}
-setmetatable(used_ids, {__mode = "v"})
-
 local form_mt = {__index = Form}
 function flow.make_gui(build_func)
-    local res = setmetatable({}, form_mt)
-
-    -- Reserve a formname
-    local id = #used_ids + 1
-    used_ids[id] = gui
-
-    res._formname = ("flow:%x"):format(id)
-    res._build = build_func
-
-    return res
+    return setmetatable({_build = build_func}, form_mt)
 end
 
 local function on_fs_input(player, formname, fields)
@@ -836,7 +839,7 @@ local function on_fs_input(player, formname, fields)
     if fields.quit then
         open_formspecs[name] = nil
     elseif redraw_fs then
-        form_info.self:show(player, ctx)
+        update_form(form_info.self, player, form_info)
     end
 end
 
