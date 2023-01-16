@@ -801,9 +801,7 @@ end
 local function on_fs_input(player, formname, fields)
     local name = player:get_player_name()
     local form_info = open_formspecs[name]
-    if not form_info then return end
-
-    if formname ~= form_info.formname then return end
+    if not form_info or formname ~= form_info.formname then return end
 
     local callbacks = form_info.callbacks
     local ctx = form_info.ctx
