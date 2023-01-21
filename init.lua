@@ -824,8 +824,7 @@ local function on_fs_input(player, formname, fields)
         end
     end
 
-    -- Some callbacks may be false to indicate that they're valid fields but
-    -- don't need to be called
+    -- Run on_event callbacks
     for field, value in pairs(fields) do
         if callbacks[field] and callbacks[field](player, ctx, value) then
             redraw_fs = true
