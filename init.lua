@@ -126,8 +126,12 @@ end
 local function apply_padding(node, x, y)
     local w, h = get_and_fill_in_sizes(node)
 
-    if node.type == "label" or node.type == "checkbox" then
+    -- Labels are positioned from the centre of the first line and checkboxes
+    -- are positioned from the centre.
+    if node.type == "label" then
         y = y + LABEL_OFFSET
+    elseif node.type == "checkbox" then
+        y = y + h / 2
     end
 
     if node._padding_top then
@@ -185,13 +189,6 @@ function size_getters.hbox(hbox)
             local w, h = apply_padding(node, x, 0)
             height = max(height, h)
             x = x + w
-        end
-    end
-
-    -- Special cases
-    for _, node in ipairs(hbox) do
-        if node.type == "checkbox" then
-            node.y = height / 2
         end
     end
 
