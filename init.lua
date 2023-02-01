@@ -195,6 +195,19 @@ function size_getters.hbox(hbox)
     return x, height
 end
 
+function size_getters.stack(stack)
+    local width, height = 0, 0
+    for _, node in ipairs(stack) do
+        if not invisible_elems[node.type] then
+            local w, h = apply_padding(node, 0, 0)
+            width = max(width, w)
+            height = max(height, h)
+        end
+    end
+
+    return width, height
+end
+
 function size_getters.padding(node)
     minetest.log("warning", "[flow] The gui.Padding element is deprecated")
     assert(#node == 1, "Padding can only have one element inside.")
@@ -210,7 +223,7 @@ local align_types = {}
 
 function align_types.fill(node, x, w, extra_space)
     -- Special cases
-    if node.type == "list" or node.type == "checkbox" then
+    if node.type == "list" or node.type == "checkbox" or node._label_hack then
         return align_types.centre(node, x, w, extra_space)
     elseif node.type == "label" then
         if x == "y" then
@@ -241,6 +254,7 @@ function align_types.fill(node, x, w, extra_space)
 
         node.y = node.y - LABEL_OFFSET
         node.label = nil
+        node._label_hack = true
         assert(#node == 2)
     end
     node[w] = node[w] + extra_space
@@ -286,24 +300,25 @@ function align_types.auto(node, x, w, extra_space, cross)
     end
 end
 
+local expand_child_boxes
 local function expand(box)
     local x, w, align_h, y, h, align_v
-    if box.type == "hbox" then
+    local box_type = box.type
+    if box_type == "hbox" then
         x, w, align_h, y, h, align_v = "x", "w", "align_h", "y", "h", "align_v"
-    elseif box.type == "vbox" then
+    elseif box_type == "vbox" then
         x, w, align_h, y, h, align_v = "y", "h", "align_v", "x", "w", "align_h"
-    elseif box.type == "padding" then
+    elseif box_type == "stack" or
+            (box_type == "padding" and box[1].expand) then
         box.type = "container"
-        local node = box[1]
-        if node.expand then
+        for _, node in ipairs(box) do
             align_types[node.align_h or "auto"](node, "x", "w", box.w -
-                node.w - ((node.padding or 0) + (box.padding or 0)) * 2)
+                node.w - (node.padding or 0) * 2)
             align_types[node.align_v or "auto"](node, "y", "h", box.h -
-                node.h - ((node.padding or 0) + (box.padding or 0)) * 2 -
-                (node._padding_top or 0) - (box._padding_top or 0))
+                node.h - (node.padding or 0) * 2 - (node._padding_top or 0))
         end
-        return expand(node)
-    elseif box.type == "container" or box.type == "scroll_container" then
+        return expand_child_boxes(box)
+    elseif box_type == "container" or box_type == "scroll_container" then
         for _, node in ipairs(box) do
             if node.x == 0 and node.expand and box.w then
                 node.w = box.w
@@ -311,6 +326,9 @@ local function expand(box)
             expand(node)
         end
         return
+    elseif box_type == "padding" then
+        box.type = "container"
+        return expand_child_boxes(box)
     else
         return
     end
@@ -381,6 +399,10 @@ local function expand(box)
         end
     end
 
+    expand_child_boxes(box)
+end
+
+function expand_child_boxes(box)
     -- Recursively expand and remove any invisible nodes
     for i = #box, 1, -1 do
         local node = box[i]

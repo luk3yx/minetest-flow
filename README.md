@@ -379,3 +379,23 @@ end)
 ```
 
 ![Screenshot](https://user-images.githubusercontent.com/3182651/212222545-baee3669-15cd-410d-a638-c63b65a8811b.png)
+
+### `gui.Stack`
+
+This container element places its children on top of each other. All child
+elements are expanded in both directions.
+
+Note that some elements (such as centred labels and `gui.Box`) won't pass
+clicks through to the element below them.
+
+Example:
+
+```lua
+gui.Stack{
+    min_w = 10,
+    gui.Button{label = "Hello world!"},
+    gui.Image{w = 1, h = 1, texture_name = "air.png", padding = 0.2, align_h = "left"},
+}
+```
+
+![Screenshot](https://user-images.githubusercontent.com/3182651/215946217-3705dbd1-4ec8-4aed-a9eb-381fecb2d8f2.png)

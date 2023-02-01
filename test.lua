@@ -228,4 +228,28 @@ describe("Flow", function()
             box[0.3,5.1;10,5.2;]
         ]])
     end)
+
+    it("stacks elements", function()
+        test_render(gui.Stack{
+            gui.Button{w = 3, h = 1, label = "1", align_v = "top"},
+            gui.Image{w = 1, h = 1, align_h = "fill", align_v = "fill",
+                texture_name = "2"},
+            gui.Image{w = 1, h = 3, texture_name = "3", visible = false},
+            gui.Field{name = "4", label = "Test", align_v = "fill"},
+            gui.Field{name = "5", label = "", align_v = "fill"},
+
+            gui.Label{label = "Test", align_h = "centre"},
+        }, [[
+            size[3.6,3.6]
+            field_close_on_enter[4;false]
+            field_close_on_enter[5;false]
+            button[0.3,0.3;3,1;;1]
+            image[0.3,0.3;3,3;2]
+            field[0.3,0.7;3,2.6;4;Test;]
+            field[0.3,0.3;3,3;5;;]
+
+            image_button[0.3,1.6;3,0.4;blank.png;;Test;;false]
+            image_button[0.3,1.6;3,0.4;blank.png;;;;false]
+        ]])
+    end)
 end)
