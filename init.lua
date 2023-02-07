@@ -257,7 +257,15 @@ function align_types.fill(node, x, w, extra_space)
         node._label_hack = true
         assert(#node == 2)
     end
-    node[w] = node[w] + extra_space
+
+    if node[w] then
+        node[w] = node[w] + extra_space
+    else
+        minetest.log("warning", "[flow] Unknown element: \"" ..
+            tostring(node.type) .. "\". Please make sure that flow is " ..
+            "up-to-date and the element has a size set (if required).")
+        node[w] = extra_space
+    end
 end
 
 function align_types.start()
