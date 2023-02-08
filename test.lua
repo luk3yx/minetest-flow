@@ -239,6 +239,9 @@ describe("Flow", function()
             gui.Field{name = "5", label = "", align_v = "fill"},
 
             gui.Label{label = "Test", align_h = "centre"},
+
+            gui.List{inventory_location = "a", list_name = "b", w = 2, h = 2},
+            gui.Style{selectors = {"test"}, props = {prop = "value"}},
         }, [[
             size[3.6,3.6]
             field_close_on_enter[4;false]
@@ -250,6 +253,9 @@ describe("Flow", function()
 
             image_button[0.3,1.6;3,0.4;blank.png;;Test;;false]
             image_button[0.3,1.6;3,0.4;blank.png;;;;false]
+
+            list[a;b;0.675,0.675;2,2]
+            style[test;prop=value]
         ]])
     end)
 end)

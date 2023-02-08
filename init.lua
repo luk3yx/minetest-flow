@@ -320,10 +320,18 @@ local function expand(box)
             (box_type == "padding" and box[1].expand) then
         box.type = "container"
         for _, node in ipairs(box) do
-            align_types[node.align_h or "auto"](node, "x", "w", box.w -
-                node.w - (node.padding or 0) * 2)
-            align_types[node.align_v or "auto"](node, "y", "h", box.h -
-                node.h - (node.padding or 0) * 2 - (node._padding_top or 0))
+            if not invisible_elems[node.type] then
+                local width, height = node.w or 0, node.h or 0
+                if node.type == "list" then
+                    width = width * 1.25 - 0.25
+                    height = height * 1.25 - 0.25
+                end
+                local padding_x2 = (node.padding or 0) * 2
+                align_types[node.align_h or "auto"](node, "x", "w", box.w -
+                    width - padding_x2)
+                align_types[node.align_v or "auto"](node, "y", "h", box.h -
+                    height - padding_x2 - (node._padding_top or 0))
+            end
         end
         return expand_child_boxes(box)
     elseif box_type == "container" or box_type == "scroll_container" then
