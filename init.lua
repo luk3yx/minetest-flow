@@ -744,8 +744,7 @@ function Form:_render(player, ctx, formspec_version, id1)
     }
 end
 
-local open_formspecs = {}
-local function show_form(self, player, formname, ctx, auto_name_id)
+local function prepare_form(self, player, formname, ctx, auto_name_id)
     local name = player:get_player_name()
     -- local t = DEBUG_MODE and minetest.get_us_time()
     local info = minetest.get_player_information(name)
@@ -757,11 +756,29 @@ local function show_form(self, player, formname, ctx, auto_name_id)
     -- local t3 = DEBUG_MODE and minetest.get_us_time()
 
     form_info.formname = formname
-    open_formspecs[name] = form_info
     -- if DEBUG_MODE then
     --     print(t3 - t, t2 - t, t3 - t2)
     -- end
+    return  fs, form_info
+end
+
+local open_formspecs = {}
+local function show_form(self, player, formname, ctx, auto_name_id)
+    local name = player:get_player_name()
+    local fs, form_info = prepare_form(self, player, formname, ctx, auto_name_id)
+
+    open_formspecs[name] = form_info
     minetest.show_formspec(name, formname, fs)
+end
+
+local open_inv_formspecs = {}
+local function set_inv_form(self, player, ctx)
+    local name = player:get_player_name()
+    -- Formname of "" is inventory
+    local fs, form_info = prepare_form(self, player, "", ctx)
+
+    open_inv_formspecs[name] = form_info
+    player:set_inventory_formspec(fs)
 end
 
 local next_formname = 0
@@ -786,6 +803,10 @@ function Form:show_hud(player, ctx)
     hud_fs.show_hud(player, self, tree)
 end
 
+function Form:set_as_inventory_for(player, ctx)
+    set_inv_form(self, player, ctx or {})
+end
+
 function Form:close(player)
     local name = player:get_player_name()
     local form_info = open_formspecs[name]
@@ -797,6 +818,11 @@ end
 
 function Form:close_hud(player)
     hud_fs.close_hud(player, self)
+end
+
+function Form:unset_as_inventory_for(player)
+    open_inv_formspecs[player:get_player_name()] = nil
+    player:set_inventory_formspec("") -- TODO should this restore what it was before? This disables inventory as-is until set by something else.
 end
 
 local function update_form(self, player, form_info)
@@ -811,18 +837,21 @@ local function update_form(self, player, form_info)
 end
 
 function Form:update(player)
-    local form_info = open_formspecs[player:get_player_name()]
+    local player_name = player:get_player_name()
+    local form_info = open_formspecs[player_name] or open_inv_formspecs[player_name]
     if form_info and form_info.self == self then
         update_form(self, player, form_info)
     end
 end
 
 function Form:update_where(func)
-    for name, form_info in pairs(open_formspecs) do
-        if form_info.self == self then
-            local player = minetest.get_player_by_name(name)
-            if player and func(player, form_info.ctx) then
-                update_form(self, player, form_info)
+    for _ , open_formspec_table in ipairs({open_formspecs, open_inv_formspecs}) do
+        for name, form_info in pairs(open_formspec_table) do
+            if form_info.self == self then
+                local player = minetest.get_player_by_name(name)
+                if player and func(player, form_info.ctx) then
+                    update_form(self, player, form_info)
+                end
             end
         end
     end
@@ -835,7 +864,14 @@ end
 
 local function on_fs_input(player, formname, fields)
     local name = player:get_player_name()
-    local form_info = open_formspecs[name]
+    local inv = false
+    local form_info
+    if formname ~= "" then
+        form_info = open_formspecs[name]
+    else
+        form_info = open_inv_formspecs[name]
+        inv = true
+    end
     if not form_info or formname ~= form_info.formname then return end
 
     local callbacks = form_info.callbacks
@@ -866,9 +902,13 @@ local function on_fs_input(player, formname, fields)
         end
     end
 
-    if open_formspecs[name] ~= form_info then return true end
+    if inv then
+        if open_inv_formspecs[name] ~= form_info then return true end
+    else
+        if open_formspecs[name] ~= form_info then return true end
+    end
 
-    if fields.quit then
+    if fields.quit and not inv then
         open_formspecs[name] = nil
     elseif redraw_fs then
         update_form(form_info.self, player, form_info)
@@ -878,6 +918,7 @@ end
 
 local function on_leaveplayer(player)
     open_formspecs[player:get_player_name()] = nil
+    open_inv_formspecs[player:get_player_name()] = nil
 end
 
 if DEBUG_MODE then

@@ -22,6 +22,27 @@ local function dummy() end
 minetest.register_on_leaveplayer = dummy
 minetest.get_modpath = dummy
 minetest.is_singleplayer = dummy
+minetest.get_player_information = dummy
+minetest.show_formspec = dummy
+
+-- Stub minetest player api
+local function stub_player(name)
+    assert(type(name) == "string")
+    local self = {}
+    function self:get_player_name()
+        return name
+    end
+    function self:get_inventory_formspec()
+        return ""
+    end
+    function self:set_inventory_formspec(formspec)
+        assert(formspec ~= nil)
+        function self:get_inventory_formspec()
+            return formspec
+        end
+    end
+    return self
+end
 
 table.indexof = table.indexof or function(list, value)
     for i, item in ipairs(list) do
@@ -257,5 +278,42 @@ describe("Flow", function()
             list[a;b;0.675,0.675;2,2]
             style[test;prop=value]
         ]])
+    end)
+
+    it("registers inventory formspecs", function ()
+        local stupid_simple_inv_expected =
+            "formspec_version[5]" ..
+            "size[10.35,5.35]" ..
+            "list[current_player;main;0.3,0.3;8,4]"
+        local stupid_simple_inv = flow.make_gui(function (p, c)
+            return gui.List{
+                inventory_location = "current_player",
+                list_name = "main",
+                w = 8,
+                h = 4,
+            }
+        end)
+        local player = stub_player("test_player")
+        assert(player:get_inventory_formspec() == "")
+        stupid_simple_inv:set_as_inventory_for(player)
+        assert(player:get_inventory_formspec() == stupid_simple_inv_expected)
+        stupid_simple_inv:update(player) -- TODO how do I show an update happened?
+        assert(player:get_inventory_formspec() == stupid_simple_inv_expected)
+    end)
+
+    it("can still show a form when an inventory formspec is shown", function ()
+        local expected_one = "formspec_version[5]size[1.6,1.6]box[0.3,0.3;1,1;]"
+        local one = flow.make_gui(function (p, c)
+            return gui.Box{ w = 1, h = 1 }
+        end)
+        local blue = flow.make_gui(function (p, c)
+            return gui.Box{ w = 1, h = 4, color = "blue" }
+        end)
+        local player = stub_player("test_player")
+        assert(player:get_inventory_formspec() == "")
+        one:set_as_inventory_for(player)
+        assert(player:get_inventory_formspec() == expected_one)
+        blue:show(player)
+        assert(player:get_inventory_formspec() == expected_one)
     end)
 end)
