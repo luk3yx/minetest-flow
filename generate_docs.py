@@ -3,6 +3,11 @@ import collections, re, requests
 yaml = YAML(typ='safe')
 
 
+hide_elements = {
+    'background', 'background9', 'scroll_container', 'scrollbar', 'tabheader'
+}
+
+
 def fetch_elements():
     res = requests.get('https://github.com/luk3yx/minetest-formspec_ast/raw/'
                        'master/elements.yaml')
@@ -23,6 +28,12 @@ def search_for_fields(obj):
         yield from search_for_fields(e)
 
 
+def optional(element_name, field_name):
+    if field_name in ('w', 'h'):
+        return (element_name not in ('list', 'hypertext', 'model') and
+                'image' not in element_name)
+    return field_name == 'name'
+
 def element_to_docs(element_name, variants):
     flow_name = re.sub(r'_(.)', lambda m: m.group(1).upper(),
                        element_name.capitalize())
@@ -36,14 +47,15 @@ def element_to_docs(element_name, variants):
     ]
 
     fields = collections.Counter(search_for_fields(variants))
-    if (('x', 'number') not in fields or
+    if (element_name in hide_elements or ('x', 'number') not in fields or
             all(field_name in ('x', 'y') for field_name, _ in fields)):
         return ''
 
     num = 1
 
     for (field_name, field_type), count in fields.items():
-        if field_name in ('x', 'y'):
+        if (field_name in ('x', 'y') or (element_name == 'tooltip' and
+                                         field_name in ('w', 'h'))):
             continue
 
         if field_type == 'number':
@@ -66,8 +78,8 @@ def element_to_docs(element_name, variants):
             value = '<?>'
 
         line = f'    {field_name} = {value},'
-        if ((field_name in ('name', 'w', 'h') and element_name != 'list') or
-                count < len(variants)):
+        if ((count < len(variants) or optional(element_name, field_name)) and
+                field_name != 'gui_element_name'):
             line = line + ' -- Optional'
         res.append(line)
 
