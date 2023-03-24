@@ -364,17 +364,17 @@ gui.Button{
 },
 ```
 
-## Hiding elements
+## Experimental features
+
+These features might be broken in the future.
+
+### Hiding elements
 
 Elements inside boxes can have `visible = false` set to hide them from the
 player. Elements hidden this way will still take up space like with
 `visibility: hidden;` in CSS.
 
 The style elements are invisible and won't affect padding.
-
-## Experimental features
-
-These features might be broken in the future.
 
 ### `no_prepend[]`
 
