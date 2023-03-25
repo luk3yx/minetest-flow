@@ -771,16 +771,6 @@ local function show_form(self, player, formname, ctx, auto_name_id)
     minetest.show_formspec(name, formname, fs)
 end
 
-local open_inv_formspecs = {}
-local function set_inv_form(self, player, ctx)
-    local name = player:get_player_name()
-    -- Formname of "" is inventory
-    local fs, form_info = prepare_form(self, player, "", ctx)
-
-    open_inv_formspecs[name] = form_info
-    player:set_inventory_formspec(fs)
-end
-
 local next_formname = 0
 function Form:show(player, ctx)
     if type(player) == "string" then
@@ -803,8 +793,14 @@ function Form:show_hud(player, ctx)
     hud_fs.show_hud(player, self, tree)
 end
 
+local open_inv_formspecs = {}
 function Form:set_as_inventory_for(player, ctx)
-    set_inv_form(self, player, ctx or {})
+    local name = player:get_player_name()
+    -- Formname of "" is inventory
+    local fs, form_info = prepare_form(self, player, "", ctx or {})
+
+    open_inv_formspecs[name] = form_info
+    player:set_inventory_formspec(fs)
 end
 
 function Form:close(player)
@@ -838,20 +834,18 @@ end
 
 function Form:update(player)
     local player_name = player:get_player_name()
-    local form_info = open_formspecs[player_name] or open_inv_formspecs[player_name]
+    local form_info = open_formspecs[player_name]
     if form_info and form_info.self == self then
         update_form(self, player, form_info)
     end
 end
 
 function Form:update_where(func)
-    for _ , open_formspec_table in ipairs({open_formspecs, open_inv_formspecs}) do
-        for name, form_info in pairs(open_formspec_table) do
-            if form_info.self == self then
-                local player = minetest.get_player_by_name(name)
-                if player and func(player, form_info.ctx) then
-                    update_form(self, player, form_info)
-                end
+    for name, form_info in pairs(open_formspecs) do
+        if form_info.self == self then
+            local player = minetest.get_player_by_name(name)
+            if player and func(player, form_info.ctx) then
+                update_form(self, player, form_info)
             end
         end
     end
