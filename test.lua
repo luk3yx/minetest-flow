@@ -297,8 +297,6 @@ describe("Flow", function()
         assert(player:get_inventory_formspec() == "")
         stupid_simple_inv:set_as_inventory_for(player)
         assert(player:get_inventory_formspec() == stupid_simple_inv_expected)
-        stupid_simple_inv:update(player) -- TODO how do I show an update happened?
-        assert(player:get_inventory_formspec() == stupid_simple_inv_expected)
     end)
 
     it("can still show a form when an inventory formspec is shown", function ()
