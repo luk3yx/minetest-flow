@@ -765,7 +765,8 @@ end
 local open_formspecs = {}
 local function show_form(self, player, formname, ctx, auto_name_id)
     local name = player:get_player_name()
-    local fs, form_info = prepare_form(self, player, formname, ctx, auto_name_id)
+    local fs, form_info = prepare_form(self, player, formname, ctx,
+        auto_name_id)
 
     open_formspecs[name] = form_info
     minetest.show_formspec(name, formname, fs)
