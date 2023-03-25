@@ -823,8 +823,12 @@ function Form:close_hud(player)
 end
 
 function Form:unset_as_inventory_for(player)
-    open_inv_formspecs[player:get_player_name()] = nil
-    player:set_inventory_formspec("") -- TODO should this restore what it was before? This disables inventory as-is until set by something else.
+    local name = player:get_player_name()
+    local form_info = open_inv_formspecs[name]
+    if form_info and form_info.self == self then
+        open_inv_formspecs[name] = nil
+        player:set_inventory_formspec("")
+    end
 end
 
 local function update_form(self, player, form_info)
