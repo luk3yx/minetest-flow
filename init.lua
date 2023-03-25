@@ -843,8 +843,7 @@ local function update_form(self, player, form_info)
 end
 
 function Form:update(player)
-    local player_name = player:get_player_name()
-    local form_info = open_formspecs[player_name]
+    local form_info = open_formspecs[player:get_player_name()]
     if form_info and form_info.self == self then
         update_form(self, player, form_info)
     end
