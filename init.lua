@@ -796,8 +796,14 @@ end
 local open_inv_formspecs = {}
 function Form:set_as_inventory_for(player, ctx)
     local name = player:get_player_name()
+    local old_form_info = open_inv_formspecs[name]
+    if not ctx and old_form_info and old_form_info.self == self then
+        ctx = old_form_info.ctx
+    end
+
     -- Formname of "" is inventory
-    local fs, form_info = prepare_form(self, player, "", ctx or {})
+    local fs, form_info = prepare_form(self, player, "", ctx or {},
+        old_form_info and old_form_info.auto_name_id)
 
     open_inv_formspecs[name] = form_info
     player:set_inventory_formspec(fs)
