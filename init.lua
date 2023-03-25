@@ -720,10 +720,12 @@ function Form:_render(player, ctx, formspec_version, id1)
         "Changing the value of ctx.form is not supported!")
     ctx.form = orig_form
 
+    -- The numbering of automatically named elements is continued from previous
+    -- iterations of the form to work around race conditions
+    if not id1 or id1 > 1e6 then id1 = 0 end
+
     local tree = render_ast(box)
-    local callbacks, saved_fields, id2 = parse_callbacks(
-        tree, orig_form, id1 or 0
-    )
+    local callbacks, saved_fields, id2 = parse_callbacks(tree, orig_form, id1)
 
     local redraw_if_changed = {}
     for var in pairs(used_ctx_vars) do
@@ -832,15 +834,11 @@ function Form:unset_as_inventory_for(player)
     end
 end
 
+-- This function may eventually call minetest.update_formspec if/when it gets
+-- added (https://github.com/minetest/minetest/issues/13142)
 local function update_form(self, player, form_info)
-    -- The numbering of automatically named elements is continued from previous
-    -- iterations of the form to work around race conditions
-    local auto_name_id
-    if form_info.auto_name_id < 1e6 then
-        auto_name_id = form_info.auto_name_id
-    end
-
-    show_form(self, player, form_info.formname, form_info.ctx, auto_name_id)
+    show_form(self, player, form_info.formname, form_info.ctx,
+        form_info.auto_name_id)
 end
 
 function Form:update(player)
