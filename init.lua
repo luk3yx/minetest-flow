@@ -880,12 +880,13 @@ local function on_fs_input(player, formname, fields)
     for field, transformer in pairs(form_info.saved_fields) do
         if fields[field] then
             local new_value = transformer(fields[field])
-            if redraw_if_changed[field] and ctx_form[field] ~= new_value then
-                if DEBUG_MODE then
-                    print('Modified:', dump(field), dump(ctx_form[field]),
-                        '->', dump(new_value))
+            if ctx_form[field] ~= new_value then
+                if redraw_if_changed[field] then
+                    redraw_fs = true
+                elseif formname == "" then
+                    -- Update the inventory when the player closes it next
+                    form_info.ctx_form_modified = true
                 end
-                redraw_fs = true
             end
             ctx_form[field] = new_value
         end
@@ -902,7 +903,7 @@ local function on_fs_input(player, formname, fields)
 
     if formname == "" then
         -- Special case for inventory forms
-        if redraw_fs then
+        if redraw_fs or (fields.quit and form_info.ctx_form_modified) then
             form_info.self:set_as_inventory_for(player)
         end
     elseif fields.quit then
