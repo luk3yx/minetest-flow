@@ -759,7 +759,7 @@ local function prepare_form(self, player, formname, ctx, auto_name_id)
     -- if DEBUG_MODE then
     --     print(t3 - t, t2 - t, t3 - t2)
     -- end
-    return  fs, form_info
+    return fs, form_info
 end
 
 local open_formspecs = {}
@@ -864,14 +864,8 @@ end
 
 local function on_fs_input(player, formname, fields)
     local name = player:get_player_name()
-    local inv = false
-    local form_info
-    if formname ~= "" then
-        form_info = open_formspecs[name]
-    else
-        form_info = open_inv_formspecs[name]
-        inv = true
-    end
+    local form_infos = formname == "" and open_inv_formspecs or open_formspecs
+    local form_info = form_infos[name]
     if not form_info or formname ~= form_info.formname then return end
 
     local callbacks = form_info.callbacks
@@ -902,13 +896,14 @@ local function on_fs_input(player, formname, fields)
         end
     end
 
-    if inv then
-        if open_inv_formspecs[name] ~= form_info then return true end
-    else
-        if open_formspecs[name] ~= form_info then return true end
-    end
+    if form_infos[name] ~= form_info then return true end
 
-    if fields.quit and not inv then
+    if formname == "" then
+        -- Special case for inventory forms
+        if redraw_fs then
+            form_info.self:set_as_inventory_for(player)
+        end
+    elseif fields.quit then
         open_formspecs[name] = nil
     elseif redraw_fs then
         update_form(form_info.self, player, form_info)
