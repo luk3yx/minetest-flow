@@ -917,8 +917,9 @@ local function on_fs_input(player, formname, fields)
 end
 
 local function on_leaveplayer(player)
-    open_formspecs[player:get_player_name()] = nil
-    open_inv_formspecs[player:get_player_name()] = nil
+    local name = player:get_player_name()
+    open_formspecs[name] = nil
+    open_inv_formspecs[name] = nil
 end
 
 if DEBUG_MODE then
