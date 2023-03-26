@@ -720,10 +720,12 @@ function Form:_render(player, ctx, formspec_version, id1)
         "Changing the value of ctx.form is not supported!")
     ctx.form = orig_form
 
+    -- The numbering of automatically named elements is continued from previous
+    -- iterations of the form to work around race conditions
+    if not id1 or id1 > 1e6 then id1 = 0 end
+
     local tree = render_ast(box)
-    local callbacks, saved_fields, id2 = parse_callbacks(
-        tree, orig_form, id1 or 0
-    )
+    local callbacks, saved_fields, id2 = parse_callbacks(tree, orig_form, id1)
 
     local redraw_if_changed = {}
     for var in pairs(used_ctx_vars) do
@@ -744,8 +746,7 @@ function Form:_render(player, ctx, formspec_version, id1)
     }
 end
 
-local open_formspecs = {}
-local function show_form(self, player, formname, ctx, auto_name_id)
+local function prepare_form(self, player, formname, ctx, auto_name_id)
     local name = player:get_player_name()
     -- local t = DEBUG_MODE and minetest.get_us_time()
     local info = minetest.get_player_information(name)
@@ -757,10 +758,19 @@ local function show_form(self, player, formname, ctx, auto_name_id)
     -- local t3 = DEBUG_MODE and minetest.get_us_time()
 
     form_info.formname = formname
-    open_formspecs[name] = form_info
     -- if DEBUG_MODE then
     --     print(t3 - t, t2 - t, t3 - t2)
     -- end
+    return fs, form_info
+end
+
+local open_formspecs = {}
+local function show_form(self, player, formname, ctx, auto_name_id)
+    local name = player:get_player_name()
+    local fs, form_info = prepare_form(self, player, formname, ctx,
+        auto_name_id)
+
+    open_formspecs[name] = form_info
     minetest.show_formspec(name, formname, fs)
 end
 
@@ -786,6 +796,22 @@ function Form:show_hud(player, ctx)
     hud_fs.show_hud(player, self, tree)
 end
 
+local open_inv_formspecs = {}
+function Form:set_as_inventory_for(player, ctx)
+    local name = player:get_player_name()
+    local old_form_info = open_inv_formspecs[name]
+    if not ctx and old_form_info and old_form_info.self == self then
+        ctx = old_form_info.ctx
+    end
+
+    -- Formname of "" is inventory
+    local fs, form_info = prepare_form(self, player, "", ctx or {},
+        old_form_info and old_form_info.auto_name_id)
+
+    open_inv_formspecs[name] = form_info
+    player:set_inventory_formspec(fs)
+end
+
 function Form:close(player)
     local name = player:get_player_name()
     local form_info = open_formspecs[name]
@@ -799,15 +825,20 @@ function Form:close_hud(player)
     hud_fs.close_hud(player, self)
 end
 
-local function update_form(self, player, form_info)
-    -- The numbering of automatically named elements is continued from previous
-    -- iterations of the form to work around race conditions
-    local auto_name_id
-    if form_info.auto_name_id < 1e6 then
-        auto_name_id = form_info.auto_name_id
+function Form:unset_as_inventory_for(player)
+    local name = player:get_player_name()
+    local form_info = open_inv_formspecs[name]
+    if form_info and form_info.self == self then
+        open_inv_formspecs[name] = nil
+        player:set_inventory_formspec("")
     end
+end
 
-    show_form(self, player, form_info.formname, form_info.ctx, auto_name_id)
+-- This function may eventually call minetest.update_formspec if/when it gets
+-- added (https://github.com/minetest/minetest/issues/13142)
+local function update_form(self, player, form_info)
+    show_form(self, player, form_info.formname, form_info.ctx,
+        form_info.auto_name_id)
 end
 
 function Form:update(player)
@@ -835,7 +866,8 @@ end
 
 local function on_fs_input(player, formname, fields)
     local name = player:get_player_name()
-    local form_info = open_formspecs[name]
+    local form_infos = formname == "" and open_inv_formspecs or open_formspecs
+    local form_info = form_infos[name]
     if not form_info or formname ~= form_info.formname then return end
 
     local callbacks = form_info.callbacks
@@ -848,12 +880,13 @@ local function on_fs_input(player, formname, fields)
     for field, transformer in pairs(form_info.saved_fields) do
         if fields[field] then
             local new_value = transformer(fields[field])
-            if redraw_if_changed[field] and ctx_form[field] ~= new_value then
-                if DEBUG_MODE then
-                    print('Modified:', dump(field), dump(ctx_form[field]),
-                        '->', dump(new_value))
+            if ctx_form[field] ~= new_value then
+                if redraw_if_changed[field] then
+                    redraw_fs = true
+                elseif formname == "" then
+                    -- Update the inventory when the player closes it next
+                    form_info.ctx_form_modified = true
                 end
-                redraw_fs = true
             end
             ctx_form[field] = new_value
         end
@@ -866,9 +899,14 @@ local function on_fs_input(player, formname, fields)
         end
     end
 
-    if open_formspecs[name] ~= form_info then return true end
+    if form_infos[name] ~= form_info then return true end
 
-    if fields.quit then
+    if formname == "" then
+        -- Special case for inventory forms
+        if redraw_fs or (fields.quit and form_info.ctx_form_modified) then
+            form_info.self:set_as_inventory_for(player)
+        end
+    elseif fields.quit then
         open_formspecs[name] = nil
     elseif redraw_fs then
         update_form(form_info.self, player, form_info)
@@ -877,7 +915,9 @@ local function on_fs_input(player, formname, fields)
 end
 
 local function on_leaveplayer(player)
-    open_formspecs[player:get_player_name()] = nil
+    local name = player:get_player_name()
+    open_formspecs[name] = nil
+    open_inv_formspecs[name] = nil
 end
 
 if DEBUG_MODE then
