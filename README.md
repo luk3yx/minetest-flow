@@ -271,6 +271,26 @@ gui.Label{label="I am centered!", align_h = "centre"},
 This applies to other elements as well, because using HBox and Spacer to centre
 elements creates unnecessary containers.
 
+#### `gui.Stack`
+
+This container element places its children on top of each other. All child
+elements are expanded in both directions.
+
+Note that some elements (such as centred labels) won't pass clicks through to
+the element below them.
+
+Example:
+
+```lua
+gui.Stack{
+    min_w = 10,
+    gui.Button{label = "Hello world!"},
+    gui.Image{w = 1, h = 1, texture_name = "air.png", padding = 0.2, align_h = "left"},
+}
+```
+
+![Screenshot](https://user-images.githubusercontent.com/3182651/215946217-3705dbd1-4ec8-4aed-a9eb-381fecb2d8f2.png)
+
 ### Minetest formspec elements
 
 There is an auto-generated
@@ -344,8 +364,6 @@ gui.Button{
 },
 ```
 
-The style elements are invisible and won't affect padding.
-
 ## Experimental features
 
 These features might be broken in the future.
@@ -355,6 +373,8 @@ These features might be broken in the future.
 Elements inside boxes can have `visible = false` set to hide them from the
 player. Elements hidden this way will still take up space like with
 `visibility: hidden;` in CSS.
+
+The style elements are invisible and won't affect padding.
 
 ### `no_prepend[]`
 
@@ -380,27 +400,7 @@ end)
 
 ![Screenshot](https://user-images.githubusercontent.com/3182651/212222545-baee3669-15cd-410d-a638-c63b65a8811b.png)
 
-### `gui.Stack`
-
-This container element places its children on top of each other. All child
-elements are expanded in both directions.
-
-Note that some elements (such as centred labels and `gui.Box`) won't pass
-clicks through to the element below them.
-
-Example:
-
-```lua
-gui.Stack{
-    min_w = 10,
-    gui.Button{label = "Hello world!"},
-    gui.Image{w = 1, h = 1, texture_name = "air.png", padding = 0.2, align_h = "left"},
-}
-```
-
-![Screenshot](https://user-images.githubusercontent.com/3182651/215946217-3705dbd1-4ec8-4aed-a9eb-381fecb2d8f2.png)
-
-### Set form as player inventory
+### Using a form as an inventory
 
 A form can be set as the player inventory. Flow internally generates the
 formspec and passes it to `player:set_inventory_formspec()`. This will
