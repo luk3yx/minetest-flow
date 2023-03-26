@@ -403,7 +403,8 @@ gui.Stack{
 ### Set form as player inventory
 
 A form can be set as the player inventory. Flow internally generates the
-formspec and passes it to `player:set_inventory_formspec()`.
+formspec and passes it to `player:set_inventory_formspec()`. This will override
+your inventory mod.
 
 ```lua
 local example_inventory = flow.make_gui(function (player, context)
@@ -415,7 +416,8 @@ end)
 ```
 
 Like with the `show_hud` function, `update*` functions don't do anything, so to
-update it, call `set_as_inventory_for` again with the new context.
+update it, call `set_as_inventory_for` again with the new context. If the
+context is not provided, it will reuse the existing context.
 
 ```lua
 example_inventory:set_as_inventory_for(player, new_context)
