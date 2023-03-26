@@ -426,10 +426,11 @@ example_inventory:set_as_inventory_for(player, new_context)
 
 While the form will of course be cleared when the player leaves, if you'd like
 to unset the inventory manually, call `:unset_as_inventory_for(player)`,
-analogue to `close_hud`.:
+analogue to `close_hud`:
 
 ```lua
 example_inventory:unset_as_inventory_for(player)
 ```
 
-This will set the inventory formspec string to `""`.
+This will set the inventory formspec string to `""` and stop flow from
+processing inventory formspec input.
