@@ -399,3 +399,34 @@ gui.Stack{
 ```
 
 ![Screenshot](https://user-images.githubusercontent.com/3182651/215946217-3705dbd1-4ec8-4aed-a9eb-381fecb2d8f2.png)
+
+### Set form as player inventory
+
+A form can be set as the player inventory. Flow internally generates the
+formspec and passes it to `player:set_inventory_formspec()`.
+
+```lua
+local example_inventory = flow.make_gui(function (player, context)
+    return gui.Label{ label = "Inventory goes here!" }
+end)
+minetest.register_on_joinplayer(function(player)
+    example_inventory:set_as_inventory_for(player)
+end)
+```
+
+Like with the `show_hud` function, `update*` functions don't do anything, so to
+update it, call `set_as_inventory_for` again with the new context.
+
+```lua
+example_inventory:set_as_inventory_for(player, new_context)
+```
+
+While the form will of course be cleared when the player leaves, if you'd like
+to unset the inventory manually, call `:unset_as_inventory_for(player)`,
+analogue to `close_hud`.:
+
+```lua
+example_inventory:unset_as_inventory_for(player)
+```
+
+This will set the inventory formspec string to `""`.
