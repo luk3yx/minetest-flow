@@ -403,8 +403,9 @@ gui.Stack{
 ### Set form as player inventory
 
 A form can be set as the player inventory. Flow internally generates the
-formspec and passes it to `player:set_inventory_formspec()`. This will override
-your inventory mod.
+formspec and passes it to `player:set_inventory_formspec()`. This will
+completely replace your inventory and isn't compatible with inventory mods like
+sfinv.
 
 ```lua
 local example_inventory = flow.make_gui(function (player, context)
