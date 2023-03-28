@@ -498,9 +498,17 @@ local function chain_cb(f1, f2)
     end
 end
 
+local function safe_tonumber(str)
+    local num = tonumber(str)
+    if num and num == num and num >= 0 then
+        return num
+    end
+    return 0
+end
+
 local field_value_transformers = {
-    tabheader = tonumber,
-    dropdown = tonumber,
+    tabheader = safe_tonumber,
+    dropdown = safe_tonumber,
     checkbox = minetest.is_yes,
     table = function(value)
         return minetest.explode_table_event(value).row
@@ -878,17 +886,27 @@ local function on_fs_input(player, formname, fields)
     -- Update the context before calling any callbacks
     local redraw_fs = false
     for field, transformer in pairs(form_info.saved_fields) do
-        if fields[field] then
-            local new_value = transformer(fields[field])
-            if ctx_form[field] ~= new_value then
-                if redraw_if_changed[field] then
-                    redraw_fs = true
-                elseif formname == "" then
-                    -- Update the inventory when the player closes it next
-                    form_info.ctx_form_modified = true
+        local raw_value = fields[field]
+        if raw_value then
+            if #raw_value > 1048576 then
+                -- There's probably no legitimate reason for a client send a
+                -- large amount of data and very long strings have the
+                -- potential to break things.
+                -- TODO: Consider lowering this length limit
+                minetest.log("warning", "[flow] Player " .. name ..
+                    " tried submitting a large field value (>1MiB), ignoring.")
+            else
+                local new_value = transformer(raw_value)
+                if ctx_form[field] ~= new_value then
+                    if redraw_if_changed[field] then
+                        redraw_fs = true
+                    elseif formname == "" then
+                        -- Update the inventory when the player closes it next
+                        form_info.ctx_form_modified = true
+                    end
                 end
+                ctx_form[field] = new_value
             end
-            ctx_form[field] = new_value
         end
     end
 
