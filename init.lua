@@ -888,13 +888,12 @@ local function on_fs_input(player, formname, fields)
     for field, transformer in pairs(form_info.saved_fields) do
         local raw_value = fields[field]
         if raw_value then
-            if #raw_value > 1048576 then
+            if #raw_value > 262144 then
                 -- There's probably no legitimate reason for a client send a
                 -- large amount of data and very long strings have the
                 -- potential to break things.
-                -- TODO: Consider lowering this length limit
-                minetest.log("warning", "[flow] Player " .. name ..
-                    " tried submitting a large field value (>1MiB), ignoring.")
+                minetest.log("warning", "[flow] Player " .. name .. " tried" ..
+                    " submitting a large field value (>256 KiB), ignoring.")
             else
                 local new_value = transformer(raw_value)
                 if ctx_form[field] ~= new_value then
