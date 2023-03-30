@@ -783,6 +783,12 @@ local function show_form(self, player, formname, ctx, auto_name_id)
 end
 
 local next_formname = 0
+local function new_next_formname()
+    -- Form name collisions are theoretically possible but probably won't
+    -- happen in practice (and if they do the impact will be minimal)
+    next_formname = (next_formname + 1) % 2^53
+end
+
 function Form:show(player, ctx)
     if type(player) == "string" then
         minetest.log("warning",
@@ -794,9 +800,7 @@ function Form:show(player, ctx)
     -- Use a unique form name every time a new form is shown
     show_form(self, player, ("flow:%x"):format(next_formname), ctx or {})
 
-    -- Form name collisions are theoretically possible but probably won't
-    -- happen in practice (and if they do the impact will be minimal)
-    next_formname = (next_formname + 1) % 2^53
+    new_next_formname()
 end
 
 function Form:show_hud(player, ctx)
@@ -818,6 +822,33 @@ function Form:set_as_inventory_for(player, ctx)
 
     open_inv_formspecs[name] = form_info
     player:set_inventory_formspec(fs)
+end
+
+local fs_process_events -- Declared here to be accessable by render_to_formspec_string
+
+-- Returns a tuple of string and function
+function Form:render_to_formspec_string(player, ctx)
+    local formname = ("flow:subform_%x"):format(next_formname)
+    new_next_formname()
+    local fs, form_info = prepare_form(self, player, formname, ctx or {})
+    local name = player:get_player_name()
+    return fs, function (fields)
+        -- Just in case the player goes offline, we should not keep the player
+        -- reference. Nothing prevents the user from calling this function when
+        -- the player is offline, unlike the _real_ formspec submission.
+        local player = minetest.get_player_by_name(name)
+        if not player then
+            minetest.log(
+                "warning",
+                "[flow] Player " ..
+                name ..
+                " was offline when render_to_formspec_string event was" ..
+                " triggered. Events were not passed through."
+            )
+            return nil
+        end
+        return fs_process_events(player, form_info, fields)
+    end
 end
 
 function Form:close(player)
@@ -872,12 +903,8 @@ function flow.make_gui(build_func)
     return setmetatable({_build = build_func}, form_mt)
 end
 
-local function on_fs_input(player, formname, fields)
-    local name = player:get_player_name()
-    local form_infos = formname == "" and open_inv_formspecs or open_formspecs
-    local form_info = form_infos[name]
-    if not form_info or formname ~= form_info.formname then return end
-
+-- Declared locally above to be accessable to render_to_formspec_string
+function fs_process_events(player, form_info, fields)
     local callbacks = form_info.callbacks
     local ctx = form_info.ctx
     local redraw_if_changed = form_info.redraw_if_changed
@@ -892,6 +919,7 @@ local function on_fs_input(player, formname, fields)
                 -- There's probably no legitimate reason for a client send a
                 -- large amount of data and very long strings have the
                 -- potential to break things.
+                local name = player:get_player_name()
                 minetest.log("warning", "[flow] Player " .. name .. " tried" ..
                     " submitting a large field value (>256 KiB), ignoring.")
             else
@@ -899,7 +927,7 @@ local function on_fs_input(player, formname, fields)
                 if ctx_form[field] ~= new_value then
                     if redraw_if_changed[field] then
                         redraw_fs = true
-                    elseif formname == "" then
+                    elseif form_info.formname == "" then
                         -- Update the inventory when the player closes it next
                         form_info.ctx_form_modified = true
                     end
@@ -915,6 +943,17 @@ local function on_fs_input(player, formname, fields)
             redraw_fs = true
         end
     end
+
+    return redraw_fs
+end
+
+local function on_fs_input(player, formname, fields)
+    local name = player:get_player_name()
+    local form_infos = formname == "" and open_inv_formspecs or open_formspecs
+    local form_info = form_infos[name]
+    if not form_info or formname ~= form_info.formname then return end
+
+    local redraw_fs = fs_process_events(player, form_info, fields)
 
     if form_infos[name] ~= form_info then return true end
 
