@@ -824,7 +824,8 @@ function Form:set_as_inventory_for(player, ctx)
     player:set_inventory_formspec(fs)
 end
 
-local fs_process_events -- Declared here to be accessable by render_to_formspec_string
+-- Declared here to be accessable by render_to_formspec_string
+local fs_process_events
 
 -- Returns a tuple of string and function
 function Form:render_to_formspec_string(player, ctx)
