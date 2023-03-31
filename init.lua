@@ -506,7 +506,12 @@ local function safe_tonumber(str)
     return 0
 end
 
+local C1_CHARS = "\194[\128-\159]"
 local field_value_transformers = {
+    field = function(value)
+        -- Remove control characters and newlines
+        return value:gsub("[%z\1-\8\10-\31\127]", ""):gsub(C1_CHARS, "")
+    end,
     tabheader = safe_tonumber,
     dropdown = safe_tonumber,
     checkbox = minetest.is_yes,
@@ -522,7 +527,9 @@ local field_value_transformers = {
 }
 
 local function default_field_value_transformer(value)
-    return value
+    -- Remove control characters (but preserve newlines)
+    -- Pattern by https://github.com/appgurueu
+    return value:gsub("[%z\1-\8\11-\31\127]", ""):gsub(C1_CHARS, "")
 end
 
 local default_value_fields = {
