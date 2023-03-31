@@ -314,4 +314,51 @@ describe("Flow", function()
         blue:show(player)
         assert(player:get_inventory_formspec() == expected_one)
     end)
+
+    describe("render_to_formspec_string", function ()
+        it("renders the same output as manually calling _render", function ()
+            local build_func = function (_, _)
+                return gui.VBox{
+                    gui.Box{ w = 1, h = 1 },
+                    gui.Label{label = "Test", align_h = "centre"},
+                    gui.Field{name = "4", label = "Test", align_v = "fill"}
+                }
+            end
+            local form = flow.make_gui(build_func)
+            local player = stub_player("test_player")
+            local fs, _ = form:render_to_formspec_string(player)
+            test_render(build_func, fs)
+        end)
+        it("passes events through the callback function", function()
+            local manual_spy = nil
+            local manual_spy_count = 0
+            local buttonargs = {
+                label = "Click me!",
+                name = "btn",
+                on_event = function (...)
+                    manual_spy = { ... }
+                    manual_spy_count = manual_spy_count + 1
+                end
+            }
+            local form = flow.make_gui(function ()
+                return gui.Button(buttonargs)
+            end)
+            local player = stub_player("test_player")
+            function minetest.get_player_by_name(name)
+                return player
+            end
+            local ctx = { a = 1 }
+            local _, trigger_event = form:render_to_formspec_string(player, ctx)
+
+            local fields = { btn = 1 }
+            trigger_event(fields)
+
+            assert.equals(manual_spy_count, 1, "event passsed down only once")
+            assert.equals(manual_spy[1], player, "player was first arg")
+            assert.equals(manual_spy[2], ctx, "context was next")
+            assert.equals(manual_spy[3], fields.btn, "the value was last")
+
+            minetest.get_player_by_name = nil
+        end)
+    end)
 end)
