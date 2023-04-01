@@ -918,7 +918,7 @@ local function on_fs_input(player, formname, fields)
     end
 
     -- Run on_event callbacks
-    for field, value in pairs(fields) do
+    for field in pairs(fields) do
         if callbacks[field] and callbacks[field](player, ctx) then
             redraw_fs = true
         end
