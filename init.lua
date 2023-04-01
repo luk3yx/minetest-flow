@@ -783,12 +783,6 @@ local function show_form(self, player, formname, ctx, auto_name_id)
 end
 
 local next_formname = 0
-local function new_next_formname()
-    -- Form name collisions are theoretically possible but probably won't
-    -- happen in practice (and if they do the impact will be minimal)
-    next_formname = (next_formname + 1) % 2^53
-end
-
 function Form:show(player, ctx)
     if type(player) == "string" then
         minetest.log("warning",
@@ -800,7 +794,9 @@ function Form:show(player, ctx)
     -- Use a unique form name every time a new form is shown
     show_form(self, player, ("flow:%x"):format(next_formname), ctx or {})
 
-    new_next_formname()
+    -- Form name collisions are theoretically possible but probably won't
+    -- happen in practice (and if they do the impact will be minimal)
+    next_formname = (next_formname + 1) % 2^53
 end
 
 function Form:show_hud(player, ctx)
@@ -829,9 +825,7 @@ local fs_process_events
 
 -- Returns a tuple of string and function
 function Form:render_to_formspec_string(player, ctx)
-    local formname = ("flow:subform_%x"):format(next_formname)
-    new_next_formname()
-    local fs, form_info = prepare_form(self, player, formname, ctx or {})
+    local fs, form_info = prepare_form(self, player, nil, ctx or {})
     local name = player:get_player_name()
     return fs, function (fields)
         -- Just in case the player goes offline, we should not keep the player
