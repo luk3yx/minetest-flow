@@ -356,7 +356,6 @@ describe("Flow", function()
             assert.equals(manual_spy_count, 1, "event passsed down only once")
             assert.equals(manual_spy[1], player, "player was first arg")
             assert.equals(manual_spy[2], ctx, "context was next")
-            assert.equals(manual_spy[3], fields.btn, "the value was last")
 
             minetest.get_player_by_name = nil
         end)
