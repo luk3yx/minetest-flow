@@ -895,12 +895,13 @@ local function on_fs_input(player, formname, fields)
     for field, transformer in pairs(form_info.saved_fields) do
         local raw_value = fields[field]
         if raw_value then
-            if #raw_value > 262144 then
+            if #raw_value > 60000 then
                 -- There's probably no legitimate reason for a client send a
                 -- large amount of data and very long strings have the
-                -- potential to break things.
+                -- potential to break things. Please open an issue if you
+                -- (somehow) need to use longer text in fields.
                 minetest.log("warning", "[flow] Player " .. name .. " tried" ..
-                    " submitting a large field value (>256 KiB), ignoring.")
+                    " submitting a large field value (>60 kB), ignoring.")
             else
                 local new_value = transformer(raw_value)
                 if ctx_form[field] ~= new_value then
@@ -918,7 +919,7 @@ local function on_fs_input(player, formname, fields)
 
     -- Run on_event callbacks
     for field, value in pairs(fields) do
-        if callbacks[field] and callbacks[field](player, ctx, value) then
+        if callbacks[field] and callbacks[field](player, ctx) then
             redraw_fs = true
         end
     end
