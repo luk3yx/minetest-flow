@@ -95,6 +95,9 @@ size_getters.item_image_button = size_getters.button
 
 function size_getters.field(node)
     local label_w, label_h = get_label_size(node.label)
+
+    -- This is done in apply_padding as well but the label size has already
+    -- been calculated here
     if not node._padding_top and node.label and #node.label > 0 then
         node._padding_top = label_h
     end
@@ -123,6 +126,8 @@ function size_getters.checkbox(node)
     return w + 0.4, h
 end
 
+local field_elems = {field = true, pwdfield = true, textarea = true}
+
 local function apply_padding(node, x, y)
     local w, h = get_and_fill_in_sizes(node)
 
@@ -132,6 +137,11 @@ local function apply_padding(node, x, y)
         y = y + LABEL_OFFSET
     elseif node.type == "checkbox" then
         y = y + h / 2
+    elseif field_elems[node.type] and not node._padding_top and node.label and
+            #node.label > 0 then
+        -- Add _padding_top to fields with labels that have a fixed size set
+        local _, label_h = get_label_size(node.label)
+        node._padding_top = label_h
     end
 
     if node._padding_top then
@@ -506,7 +516,12 @@ local function safe_tonumber(str)
     return 0
 end
 
+local C1_CHARS = "\194[\128-\159]"
 local field_value_transformers = {
+    field = function(value)
+        -- Remove control characters and newlines
+        return value:gsub("[%z\1-\8\10-\31\127]", ""):gsub(C1_CHARS, "")
+    end,
     tabheader = safe_tonumber,
     dropdown = safe_tonumber,
     checkbox = minetest.is_yes,
@@ -522,7 +537,9 @@ local field_value_transformers = {
 }
 
 local function default_field_value_transformer(value)
-    return value
+    -- Remove control characters (but preserve newlines)
+    -- Pattern by https://github.com/appgurueu
+    return value:gsub("[%z\1-\8\11-\31\127]", ""):gsub(C1_CHARS, "")
 end
 
 local default_value_fields = {
@@ -600,21 +617,26 @@ local function parse_callbacks(tree, ctx_form, auto_name_id)
                 local value = ctx_form[node_name]
                 if node.type == "dropdown" and not node.index_event then
                     -- Special case for dropdowns without index_event
-                    if node.items then
-                        if value == nil then
-                            ctx_form[node_name] = node.items[
-                                node.selected_idx or 1
-                            ]
-                        else
-                            local idx = table.indexof(node.items, value)
-                            if idx > 0 then
-                                node.selected_idx = idx
-                            end
+                    local items = node.items or {}
+                    if value == nil then
+                        ctx_form[node_name] = items[node.selected_idx or 1]
+                    else
+                        local idx = table.indexof(items, value)
+                        if idx > 0 then
+                            node.selected_idx = idx
                         end
                     end
 
                     node.selected_idx = node.selected_idx or 1
-                    saved_fields[node_name] = default_field_value_transformer
+
+                    -- Add a custom value transformer so that only values that
+                    -- were sent to the player are accepted
+                    saved_fields[node_name] = function(new_val)
+                        if table.indexof(items, new_val) > 0 then
+                            return new_val
+                        end
+                        return ctx_form[node_name]
+                    end
                 elseif value == nil then
                     -- If ctx.form[node_name] doesn't exist, then check whether
                     -- a default value is specified.
@@ -910,13 +932,14 @@ function fs_process_events(player, form_info, fields)
     for field, transformer in pairs(form_info.saved_fields) do
         local raw_value = fields[field]
         if raw_value then
-            if #raw_value > 262144 then
+            if #raw_value > 60000 then
                 -- There's probably no legitimate reason for a client send a
                 -- large amount of data and very long strings have the
-                -- potential to break things.
-                local name = player:get_player_name()
+                -- potential to break things. Please open an issue if you
+                -- (somehow) need to use longer text in fields.
+                local name = player:get_player_name()\
                 minetest.log("warning", "[flow] Player " .. name .. " tried" ..
-                    " submitting a large field value (>256 KiB), ignoring.")
+                    " submitting a large field value (>60 kB), ignoring.")
             else
                 local new_value = transformer(raw_value)
                 if ctx_form[field] ~= new_value then
@@ -933,8 +956,8 @@ function fs_process_events(player, form_info, fields)
     end
 
     -- Run on_event callbacks
-    for field, value in pairs(fields) do
-        if callbacks[field] and callbacks[field](player, ctx, value) then
+    for field in pairs(fields) do
+        if callbacks[field] and callbacks[field](player, ctx) then
             redraw_fs = true
         end
     end
