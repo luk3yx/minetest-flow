@@ -621,11 +621,11 @@ local function parse_callbacks(tree, ctx_form, auto_name_id)
 
                     -- Add a custom value transformer so that only values that
                     -- were sent to the player are accepted
-                    saved_fields[node_name] = function(value)
-                        if table.indexof(items, value) > 0 then
-                            return value
+                    saved_fields[node_name] = function(new_val)
+                        if table.indexof(items, new_val) > 0 then
+                            return new_val
                         end
-                        return ""
+                        return ctx_form[node_name]
                     end
                 elseif value == nil then
                     -- If ctx.form[node_name] doesn't exist, then check whether
