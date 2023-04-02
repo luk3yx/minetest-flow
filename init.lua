@@ -937,7 +937,7 @@ function fs_process_events(player, form_info, fields)
                 -- large amount of data and very long strings have the
                 -- potential to break things. Please open an issue if you
                 -- (somehow) need to use longer text in fields.
-                local name = player:get_player_name()\
+                local name = player:get_player_name()
                 minetest.log("warning", "[flow] Player " .. name .. " tried" ..
                     " submitting a large field value (>60 kB), ignoring.")
             else
