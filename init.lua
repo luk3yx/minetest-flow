@@ -95,6 +95,9 @@ size_getters.item_image_button = size_getters.button
 
 function size_getters.field(node)
     local label_w, label_h = get_label_size(node.label)
+
+    -- This is done in apply_padding as well but the label size has already
+    -- been calculated here
     if not node._padding_top and node.label and #node.label > 0 then
         node._padding_top = label_h
     end
@@ -123,6 +126,8 @@ function size_getters.checkbox(node)
     return w + 0.4, h
 end
 
+local field_elems = {field = true, pwdfield = true, textarea = true}
+
 local function apply_padding(node, x, y)
     local w, h = get_and_fill_in_sizes(node)
 
@@ -132,6 +137,11 @@ local function apply_padding(node, x, y)
         y = y + LABEL_OFFSET
     elseif node.type == "checkbox" then
         y = y + h / 2
+    elseif field_elems[node.type] and not node._padding_top and node.label and
+            #node.label > 0 then
+        -- Add _padding_top to fields with labels that have a fixed size set
+        local _, label_h = get_label_size(node.label)
+        node._padding_top = label_h
     end
 
     if node._padding_top then
