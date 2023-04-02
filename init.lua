@@ -607,21 +607,26 @@ local function parse_callbacks(tree, ctx_form, auto_name_id)
                 local value = ctx_form[node_name]
                 if node.type == "dropdown" and not node.index_event then
                     -- Special case for dropdowns without index_event
-                    if node.items then
-                        if value == nil then
-                            ctx_form[node_name] = node.items[
-                                node.selected_idx or 1
-                            ]
-                        else
-                            local idx = table.indexof(node.items, value)
-                            if idx > 0 then
-                                node.selected_idx = idx
-                            end
+                    local items = node.items or {}
+                    if value == nil then
+                        ctx_form[node_name] = items[node.selected_idx or 1]
+                    else
+                        local idx = table.indexof(items, value)
+                        if idx > 0 then
+                            node.selected_idx = idx
                         end
                     end
 
                     node.selected_idx = node.selected_idx or 1
-                    saved_fields[node_name] = default_field_value_transformer
+
+                    -- Add a custom value transformer so that only values that
+                    -- were sent to the player are accepted
+                    saved_fields[node_name] = function(value)
+                        if table.indexof(items, value) > 0 then
+                            return value
+                        end
+                        return ""
+                    end
                 elseif value == nil then
                     -- If ctx.form[node_name] doesn't exist, then check whether
                     -- a default value is specified.
