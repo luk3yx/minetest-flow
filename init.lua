@@ -845,10 +845,22 @@ end
 -- Declared here to be accessable by render_to_formspec_string
 local fs_process_events
 
+-- Prevent collisions in forms, but also ensure they don't happen across
+-- mutliple embedded forms within a single parent.
+-- Unique per-user to prevent players from making the counter wrap around for
+-- other players.
+local render_to_formspec_auto_name_ids = {}
 -- Returns a tuple of string and function
 function Form:render_to_formspec_string(player, ctx)
-    local fs, form_info = prepare_form(self, player, nil, ctx or {})
     local name = player:get_player_name()
+    local fs, form_info = prepare_form(
+        self,
+        player,
+        nil,
+        ctx or {},
+        render_to_formspec_auto_name_ids[name]
+    )
+    render_to_formspec_auto_name_ids[name] = form_info.auto_name_id
     return fs, function (fields)
         -- Just in case the player goes offline, we should not keep the player
         -- reference. Nothing prevents the user from calling this function when
