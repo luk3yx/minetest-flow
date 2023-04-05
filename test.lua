@@ -345,6 +345,7 @@ describe("Flow", function()
             end)
             local player = stub_player("test_player")
             function minetest.get_player_by_name(name)
+                assert(name == "test_player")
                 return player
             end
             local ctx = { a = 1 }
