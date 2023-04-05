@@ -1004,6 +1004,7 @@ local function on_leaveplayer(player)
     local name = player:get_player_name()
     open_formspecs[name] = nil
     open_inv_formspecs[name] = nil
+    render_to_formspec_auto_name_ids[name] = nil
 end
 
 if DEBUG_MODE then
