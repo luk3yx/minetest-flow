@@ -455,7 +455,7 @@ local function render_ast(node)
     expand(node)
     local t3 = DEBUG_MODE and minetest.get_us_time()
     local res = {
-        formspec_version = 5,
+        formspec_version = 6,
         {type = "size", w = w, h = h},
     }
 
