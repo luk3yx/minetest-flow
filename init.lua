@@ -932,7 +932,7 @@ function flow.make_gui(build_func)
     return setmetatable({_build = build_func}, form_mt)
 end
 
--- Declared locally above to be accessable to render_to_formspec_string
+-- Declared locally above to be accessible to render_to_formspec_string
 function fs_process_events(player, form_info, fields)
     local callbacks = form_info.callbacks
     local ctx = form_info.ctx
