@@ -850,18 +850,28 @@ local fs_process_events
 -- Unique per-user to prevent players from making the counter wrap around for
 -- other players.
 local render_to_formspec_auto_name_ids = {}
--- Returns a tuple of string and function
-function Form:render_to_formspec_string(player, ctx)
+-- if `embedded` is true, then this won't output a "root" formspec, but instead
+--   will output  formspec designed to be embedded along with the information
+--   that was removed from the form
+function Form:render_to_formspec_string(player, ctx, embedded)
     local name = player:get_player_name()
-    local fs, form_info = prepare_form(
-        self,
+    local info = minetest.get_player_information(name)
+    local tree, form_info = self:_render(
         player,
-        nil,
         ctx or {},
-        render_to_formspec_auto_name_ids[name]
-    )
+        info and info.formspec_version,
+        render_to_formspec_auto_name_ids[name])
+    local public_form_info = {}
+    if embedded then
+        local size = table.remove(tree, 1)
+        public_form_info.w = size.w
+        public_form_info.h = size.h
+        public_form_info.formspec_version = tree.formspec_version
+        tree.formspec_version = nil
+    end
+    local fs = assert(formspec_ast.unparse(tree))
     render_to_formspec_auto_name_ids[name] = form_info.auto_name_id
-    return fs, function (fields)
+    local function event(fields)
         -- Just in case the player goes offline, we should not keep the player
         -- reference. Nothing prevents the user from calling this function when
         -- the player is offline, unlike the _real_ formspec submission.
@@ -877,6 +887,11 @@ function Form:render_to_formspec_string(player, ctx)
             return nil
         end
         return fs_process_events(player, form_info, fields)
+    end
+    if embedded then
+        return fs, event, public_form_info
+    else
+        return fs, event
     end
 end
 
