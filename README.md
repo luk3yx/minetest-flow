@@ -443,7 +443,7 @@ processing inventory formspec input.
 This API should only be used when necessary and may have breaking changes in
 the future.
 
-Some APIs in other mods, such as sfinv, expect formspec strings, you can use
+Some APIs in other mods, such as sfinv, expect formspec strings. You can use
 this API to embed flow forms inside them. To use flow with these mods, you can
 call `form:render_to_formspec_string(player, ctx, embedded)`.
 
