@@ -434,3 +434,23 @@ example_inventory:unset_as_inventory_for(player)
 
 This will set the inventory formspec string to `""` and stop flow from
 processing inventory formspec input.
+
+### Rendering to a formspec
+
+This API should only be used when necessary and may have breaking changes in
+the future.
+
+Some APIs in other mods, such as sfinv, expect formspec strings, you can use
+this API to embed flow forms inside them. To use flow with these mods, you can
+call `form:render_to_formspec_string(player, ctx, embedded)`.
+
+ - When `embedded` is set, the `formspec_version` and `size` elements aren't
+   included in the returned formspec and are included in a third return value.
+ - Returns `formspec, process_event[, info]`
+ - The `process_event(fields)` callback will return true if the formspec should
+   be redrawn, where `render_to_formspec_string` should be called and the new
+   `process_event` should be used in the future. This function may return true
+   even if fields.quit is sent.
+
+
+**Do not use this API with node meta formspecs, it can and will break!**
