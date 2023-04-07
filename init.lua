@@ -856,17 +856,13 @@ local render_to_formspec_auto_name_ids = {}
 function Form:render_to_formspec_string(player, ctx, embedded)
     local name = player:get_player_name()
     local info = minetest.get_player_information(name)
-    local tree, form_info = self:_render(
-        player,
-        ctx or {},
-        info and info.formspec_version,
-        render_to_formspec_auto_name_ids[name])
-    local public_form_info = {}
+    local tree, form_info = self:_render(player, ctx or {},
+        info and info.formspec_version, render_to_formspec_auto_name_ids[name])
+    local public_form_info
     if embedded then
         local size = table.remove(tree, 1)
-        public_form_info.w = size.w
-        public_form_info.h = size.h
-        public_form_info.formspec_version = tree.formspec_version
+        public_form_info = {w = size.w, h = size.h,
+            formspec_version = tree.formspec_version}
         tree.formspec_version = nil
     end
     local fs = assert(formspec_ast.unparse(tree))
@@ -877,13 +873,9 @@ function Form:render_to_formspec_string(player, ctx, embedded)
         -- the player is offline, unlike the _real_ formspec submission.
         local player = minetest.get_player_by_name(name)
         if not player then
-            minetest.log(
-                "warning",
-                "[flow] Player " ..
-                name ..
+            minetest.log("warning", "[flow] Player " .. name ..
                 " was offline when render_to_formspec_string event was" ..
-                " triggered. Events were not passed through."
-            )
+                " triggered. Events were not passed through.")
             return nil
         end
         return fs_process_events(player, form_info, fields)
