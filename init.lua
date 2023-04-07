@@ -842,7 +842,7 @@ function Form:set_as_inventory_for(player, ctx)
     player:set_inventory_formspec(fs)
 end
 
--- Declared here to be accessable by render_to_formspec_string
+-- Declared here to be accessible by render_to_formspec_string
 local fs_process_events
 
 -- Prevent collisions in forms, but also ensure they don't happen across
