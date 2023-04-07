@@ -364,19 +364,20 @@ gui.Button{
 },
 ```
 
-## Experimental features
+The style elements are invisible and won't affect padding.
 
-These features might be broken in the future.
-
-### Hiding elements
+## Hiding elements
 
 Elements inside boxes can have `visible = false` set to hide them from the
 player. Elements hidden this way will still take up space like with
 `visibility: hidden;` in CSS.
 
-The style elements are invisible and won't affect padding.
+## Experimental features
 
-### `no_prepend[]`
+These features might be broken in the future.
+
+<details>
+<summary><h3><code>no_prepend[]</code></h3></summary>
 
 You can set `no_prepend = true` on the "root" element to disable formspec
 prepends.
@@ -400,7 +401,8 @@ end)
 
 ![Screenshot](https://user-images.githubusercontent.com/3182651/212222545-baee3669-15cd-410d-a638-c63b65a8811b.png)
 
-### Using a form as an inventory
+</details><details>
+<summary><h3>Using a form as an inventory</h3></summary>
 
 A form can be set as the player inventory. Flow internally generates the
 formspec and passes it to `player:set_inventory_formspec()`. This will
@@ -435,7 +437,8 @@ example_inventory:unset_as_inventory_for(player)
 This will set the inventory formspec string to `""` and stop flow from
 processing inventory formspec input.
 
-### Rendering to a formspec
+</details><details>
+<summary><h3>Rendering to a formspec</h3></summary>
 
 This API should only be used when necessary and may have breaking changes in
 the future.
@@ -454,3 +457,5 @@ call `form:render_to_formspec_string(player, ctx, embedded)`.
 
 
 **Do not use this API with node meta formspecs, it can and will break!**
+
+</details>
