@@ -72,7 +72,7 @@ local gui = flow.widgets
 -- values and fix weird floating point offsets
 local function normalise_tree(tree)
     tree = formspec_ast.flatten(tree)
-    tree.formspec_version = 5
+    tree.formspec_version = 6
     return assert(formspec_ast.parse(formspec_ast.unparse(tree)))
 end
 
@@ -282,7 +282,6 @@ describe("Flow", function()
 
     it("registers inventory formspecs", function ()
         local stupid_simple_inv_expected =
-            "formspec_version[5]" ..
             "size[10.35,5.35]" ..
             "list[current_player;main;0.3,0.3;8,4]"
         local stupid_simple_inv = flow.make_gui(function (p, c)
@@ -300,7 +299,7 @@ describe("Flow", function()
     end)
 
     it("can still show a form when an inventory formspec is shown", function ()
-        local expected_one = "formspec_version[5]size[1.6,1.6]box[0.3,0.3;1,1;]"
+        local expected_one = "size[1.6,1.6]box[0.3,0.3;1,1;]"
         local one = flow.make_gui(function (p, c)
             return gui.Box{ w = 1, h = 1 }
         end)
