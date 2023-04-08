@@ -282,6 +282,7 @@ describe("Flow", function()
 
     it("registers inventory formspecs", function ()
         local stupid_simple_inv_expected =
+            "formspec_version[6]" ..
             "size[10.35,5.35]" ..
             "list[current_player;main;0.3,0.3;8,4]"
         local stupid_simple_inv = flow.make_gui(function (p, c)
@@ -299,7 +300,7 @@ describe("Flow", function()
     end)
 
     it("can still show a form when an inventory formspec is shown", function ()
-        local expected_one = "size[1.6,1.6]box[0.3,0.3;1,1;]"
+        local expected_one = "formspec_version[6]size[1.6,1.6]box[0.3,0.3;1,1;]"
         local one = flow.make_gui(function (p, c)
             return gui.Box{ w = 1, h = 1 }
         end)
@@ -325,7 +326,7 @@ describe("Flow", function()
             end
             local form = flow.make_gui(build_func)
             local player = stub_player("test_player")
-            local fs, _ = form:render_to_formspec_string(player)
+            local fs, _ = form:render_to_formspec_string(player, nil, true)
             test_render(build_func, fs)
         end)
         it("passes events through the callback function", function()
@@ -348,7 +349,7 @@ describe("Flow", function()
                 return player
             end
             local ctx = {a = 1}
-            local _, trigger_event = form:render_to_formspec_string(player, ctx)
+            local _, trigger_event = form:render_to_formspec_string(player, ctx, true)
 
             local fields = {btn = 1}
             trigger_event(fields)
