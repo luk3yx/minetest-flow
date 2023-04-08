@@ -18,8 +18,6 @@
 --
 
 local DEBUG_MODE = false
-local hot_reload = (DEBUG_MODE and minetest.global_exists("flow") and
-                    flow.hot_reload or {})
 flow = {}
 
 
@@ -980,7 +978,7 @@ function fs_process_events(player, form_info, fields)
     return redraw_fs
 end
 
-local function on_fs_input(player, formname, fields)
+minetest.register_on_player_receive_fields(function(player, formname, fields)
     local name = player:get_player_name()
     local form_infos = formname == "" and open_inv_formspecs or open_formspecs
     local form_info = form_infos[name]
@@ -1001,31 +999,14 @@ local function on_fs_input(player, formname, fields)
         update_form(form_info.self, player, form_info)
     end
     return true
-end
+end)
 
-local function on_leaveplayer(player)
+minetest.register_on_leaveplayer(function(player)
     local name = player:get_player_name()
     open_formspecs[name] = nil
     open_inv_formspecs[name] = nil
     render_to_formspec_auto_name_ids[name] = nil
-end
-
-if DEBUG_MODE then
-    flow.hot_reload = {on_fs_input, on_leaveplayer}
-    if not hot_reload[1] then
-        minetest.register_on_player_receive_fields(function(...)
-            return flow.hot_reload[1](...)
-        end)
-    end
-    if not hot_reload[2] then
-        minetest.register_on_leaveplayer(function(...)
-            return flow.hot_reload[2](...)
-        end)
-    end
-else
-    minetest.register_on_player_receive_fields(on_fs_input)
-    minetest.register_on_leaveplayer(on_leaveplayer)
-end
+end)
 
 -- Extra GUI elements
 
