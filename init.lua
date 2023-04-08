@@ -880,11 +880,7 @@ function Form:render_to_formspec_string(player, ctx, standalone)
         end
         return fs_process_events(player, form_info, fields)
     end
-    if not standalone then
-        return fs, event, public_form_info
-    else
-        return fs, event
-    end
+    return fs, event, public_form_info
 end
 
 function Form:close(player)
