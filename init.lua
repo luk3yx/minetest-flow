@@ -850,16 +850,16 @@ local fs_process_events
 -- Unique per-user to prevent players from making the counter wrap around for
 -- other players.
 local render_to_formspec_auto_name_ids = {}
--- if `standalone` is not true, then this won't output a "root" formspec, but
---   instead will output  formspec designed to be embedded along with the
---   information that was removed from the form
+-- if `standalone` is set, then this will return a standalone formspec,
+-- otherwise it instead will output formspec that can be embedded and a table
+-- with its size and target formspec version
 function Form:render_to_formspec_string(player, ctx, standalone)
     local name = player:get_player_name()
     local info = minetest.get_player_information(name)
     local tree, form_info = self:_render(player, ctx or {},
         info and info.formspec_version, render_to_formspec_auto_name_ids[name])
     local public_form_info
-    if standalone then
+    if not standalone then
         local size = table.remove(tree, 1)
         public_form_info = {w = size.w, h = size.h,
             formspec_version = tree.formspec_version}
@@ -880,7 +880,7 @@ function Form:render_to_formspec_string(player, ctx, standalone)
         end
         return fs_process_events(player, form_info, fields)
     end
-    if standalone then
+    if not standalone then
         return fs, event, public_form_info
     else
         return fs, event
