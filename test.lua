@@ -326,7 +326,7 @@ describe("Flow", function()
             end
             local form = flow.make_gui(build_func)
             local player = stub_player("test_player")
-            local fs, _ = form:render_to_formspec_string(player, nil, true)
+            local fs = form:render_to_formspec_string(player, nil, true)
             test_render(build_func, fs)
         end)
         it("renders nearly the same output as manually calling _render when not standalone", function()
@@ -339,7 +339,7 @@ describe("Flow", function()
             end
             local form = flow.make_gui(build_func)
             local player = stub_player("test_player")
-            local fs, _, info = form:render_to_formspec_string(player, false)
+            local fs, _, info = form:render_to_formspec_string(player)
             test_render(
                 build_func,
                 ("formspec_version[%s]size[%s,%s]"):format(
