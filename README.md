@@ -364,19 +364,20 @@ gui.Button{
 },
 ```
 
-## Experimental features
+The style elements are invisible and won't affect padding.
 
-These features might be broken in the future.
-
-### Hiding elements
+## Hiding elements
 
 Elements inside boxes can have `visible = false` set to hide them from the
 player. Elements hidden this way will still take up space like with
 `visibility: hidden;` in CSS.
 
-The style elements are invisible and won't affect padding.
+## Experimental features
 
-### `no_prepend[]`
+These features might be broken in the future.
+
+<details>
+<summary><b><code>no_prepend[]</code></b></summary>
 
 You can set `no_prepend = true` on the "root" element to disable formspec
 prepends.
@@ -400,7 +401,8 @@ end)
 
 ![Screenshot](https://user-images.githubusercontent.com/3182651/212222545-baee3669-15cd-410d-a638-c63b65a8811b.png)
 
-### Using a form as an inventory
+</details><details>
+<summary><b>Using a form as an inventory</b></summary>
 
 A form can be set as the player inventory. Flow internally generates the
 formspec and passes it to `player:set_inventory_formspec()`. This will
@@ -434,3 +436,28 @@ example_inventory:unset_as_inventory_for(player)
 
 This will set the inventory formspec string to `""` and stop flow from
 processing inventory formspec input.
+
+</details><details>
+<summary><b>Rendering to a formspec</b></summary>
+
+This API should only be used when necessary and may have breaking changes in
+the future.
+
+Some APIs in other mods, such as sfinv, expect formspec strings. You can use
+this API to embed flow forms inside them. To use flow with these mods, you can
+call `form:render_to_formspec_string(player, ctx, standalone)`.
+
+ - By default the the `formspec_version` and `size` elements aren't included in
+   the returned formspec and are included in a third return value. Set
+   `standalone` to include them in the returned formspec string. The third
+   return value will not be returned.
+ - Returns `formspec, process_event[, info]`
+ - The `process_event(fields)` callback will return true if the formspec should
+   be redrawn, where `render_to_formspec_string` should be called and the new
+   `process_event` should be used in the future. This function may return true
+   even if fields.quit is sent.
+
+
+**Do not use this API with node meta formspecs, it can and will break!**
+
+</details>

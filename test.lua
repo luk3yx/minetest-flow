@@ -72,7 +72,7 @@ local gui = flow.widgets
 -- values and fix weird floating point offsets
 local function normalise_tree(tree)
     tree = formspec_ast.flatten(tree)
-    tree.formspec_version = 5
+    tree.formspec_version = 6
     return assert(formspec_ast.parse(formspec_ast.unparse(tree)))
 end
 
@@ -282,7 +282,7 @@ describe("Flow", function()
 
     it("registers inventory formspecs", function ()
         local stupid_simple_inv_expected =
-            "formspec_version[5]" ..
+            "formspec_version[6]" ..
             "size[10.35,5.35]" ..
             "list[current_player;main;0.3,0.3;8,4]"
         local stupid_simple_inv = flow.make_gui(function (p, c)
@@ -300,7 +300,7 @@ describe("Flow", function()
     end)
 
     it("can still show a form when an inventory formspec is shown", function ()
-        local expected_one = "formspec_version[5]size[1.6,1.6]box[0.3,0.3;1,1;]"
+        local expected_one = "formspec_version[6]size[1.6,1.6]box[0.3,0.3;1,1;]"
         local one = flow.make_gui(function (p, c)
             return gui.Box{ w = 1, h = 1 }
         end)
@@ -313,5 +313,72 @@ describe("Flow", function()
         assert(player:get_inventory_formspec() == expected_one)
         blue:show(player)
         assert(player:get_inventory_formspec() == expected_one)
+    end)
+
+    describe("render_to_formspec_string", function ()
+        it("renders the same output as manually calling _render when standalone", function()
+            local build_func = function()
+                return gui.VBox{
+                    gui.Box{w = 1, h = 1},
+                    gui.Label{label = "Test", align_h = "centre"},
+                    gui.Field{name = "4", label = "Test", align_v = "fill"}
+                }
+            end
+            local form = flow.make_gui(build_func)
+            local player = stub_player("test_player")
+            local fs = form:render_to_formspec_string(player, nil, true)
+            test_render(build_func, fs)
+        end)
+        it("renders nearly the same output as manually calling _render when not standalone", function()
+            local build_func = function()
+                return gui.VBox{
+                    gui.Box{w = 1, h = 1},
+                    gui.Label{label = "Test", align_h = "centre"},
+                    gui.Field{name = "4", label = "Test", align_v = "fill"}
+                }
+            end
+            local form = flow.make_gui(build_func)
+            local player = stub_player("test_player")
+            local fs, _, info = form:render_to_formspec_string(player)
+            test_render(
+                build_func,
+                ("formspec_version[%s]size[%s,%s]"):format(
+                    info.formspec_version,
+                    info.w,
+                    info.h
+                ) .. fs
+            )
+        end)
+        it("passes events through the callback function", function()
+            local manual_spy
+            local manual_spy_count = 0
+            local buttonargs = {
+                label = "Click me!",
+                name = "btn",
+                on_event = function (...)
+                    manual_spy = {...}
+                    manual_spy_count = manual_spy_count + 1
+                end
+            }
+            local form = flow.make_gui(function()
+                return gui.Button(buttonargs)
+            end)
+            local player = stub_player("test_player")
+            function minetest.get_player_by_name(name)
+                assert(name == "test_player")
+                return player
+            end
+            local ctx = {a = 1}
+            local _, trigger_event = form:render_to_formspec_string(player, ctx, true)
+
+            local fields = {btn = 1}
+            trigger_event(fields)
+
+            assert.equals(manual_spy_count, 1, "event passed down only once")
+            assert.equals(manual_spy[1], player, "player was first arg")
+            assert.equals(manual_spy[2], ctx, "context was next")
+
+            minetest.get_player_by_name = nil
+        end)
     end)
 end)
