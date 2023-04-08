@@ -316,7 +316,7 @@ describe("Flow", function()
     end)
 
     describe("render_to_formspec_string", function ()
-        it("renders the same output as manually calling _render", function()
+        it("renders the same output as manually calling _render when standalone", function()
             local build_func = function()
                 return gui.VBox{
                     gui.Box{w = 1, h = 1},
@@ -328,6 +328,26 @@ describe("Flow", function()
             local player = stub_player("test_player")
             local fs, _ = form:render_to_formspec_string(player, nil, true)
             test_render(build_func, fs)
+        end)
+        it("renders nearly the same output as manually calling _render when not standalone", function()
+            local build_func = function()
+                return gui.VBox{
+                    gui.Box{w = 1, h = 1},
+                    gui.Label{label = "Test", align_h = "centre"},
+                    gui.Field{name = "4", label = "Test", align_v = "fill"}
+                }
+            end
+            local form = flow.make_gui(build_func)
+            local player = stub_player("test_player")
+            local fs, _, info = form:render_to_formspec_string(player, false)
+            test_render(
+                build_func,
+                ("formspec_version[%s]size[%s,%s]"):format(
+                    info.formspec_version,
+                    info.w,
+                    info.h
+                ) .. fs
+            )
         end)
         it("passes events through the callback function", function()
             local manual_spy
