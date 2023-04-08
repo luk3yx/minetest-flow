@@ -445,10 +445,12 @@ the future.
 
 Some APIs in other mods, such as sfinv, expect formspec strings. You can use
 this API to embed flow forms inside them. To use flow with these mods, you can
-call `form:render_to_formspec_string(player, ctx, embedded)`.
+call `form:render_to_formspec_string(player, ctx, standalone)`.
 
- - When `embedded` is set, the `formspec_version` and `size` elements aren't
-   included in the returned formspec and are included in a third return value.
+ - By default the the `formspec_version` and `size` elements aren't included in
+   the returned formspec and are included in a third return value. Set
+   `standalone` to include them in the returned formspec string. The third
+   return value will not be returned.
  - Returns `formspec, process_event[, info]`
  - The `process_event(fields)` callback will return true if the formspec should
    be redrawn, where `render_to_formspec_string` should be called and the new
