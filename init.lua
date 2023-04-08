@@ -850,9 +850,9 @@ local fs_process_events
 -- Unique per-user to prevent players from making the counter wrap around for
 -- other players.
 local render_to_formspec_auto_name_ids = {}
--- if `standalone` is set, then this will return a standalone formspec,
--- otherwise it instead will output formspec that can be embedded and a table
--- with its size and target formspec version
+-- If `standalone` is set, this will return a standalone formspec, otherwise it
+-- will return a formspec that can be embedded and a table with its size and
+-- target formspec version
 function Form:render_to_formspec_string(player, ctx, standalone)
     local name = player:get_player_name()
     local info = minetest.get_player_information(name)
