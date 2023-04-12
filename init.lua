@@ -431,8 +431,6 @@ function expand_child_boxes(box)
     for i = #box, 1, -1 do
         local node = box[i]
         -- node.visible ~= nil and not node.visible
-        -- WARNING: I'm not sure whether this should be called `visible`, I may
-        -- end up renaming it in the future. Use with caution.
         if node.visible == false then
             -- There's no need to try and expand anything inside invisible
             -- nodes since it won't affect the overall size.
