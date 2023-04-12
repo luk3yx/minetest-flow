@@ -4,8 +4,25 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
       - name: lint
         uses: Roang-zero1/factorio-mod-luacheck@master
         with:
           luacheckrc_url: ""
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: luk3yx/minetest-formspec_ast
+          path: formspec_ast
+
+      - uses: actions/checkout@v3
+        with:
+          path: flow
+
+      - name: Run unit tests
+        uses: lunarmodules/busted@v2.1.2
+        with:
+          args: --directory=flow --verbose test.lua
