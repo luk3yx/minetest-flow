@@ -1121,6 +1121,12 @@ function gui.Spacer(def)
     return def
 end
 
+-- for use in inline <bool> and <a> or <b> type inline ifs
+function gui.Nil(def)
+    def.expand = false
+    return gui.Spacer{def}
+end
+
 -- Prevent any further modifications to the gui table
 function gui_mt.__newindex()
     error("Cannot modifiy gui table")
