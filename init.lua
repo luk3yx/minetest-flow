@@ -7,19 +7,17 @@
 -- it under the terms of the GNU Lesser General Public License as published by
 -- the Free Software Foundation, either version 3 of the License, or
 -- (at your option) any later version.
-
+--
 -- This program is distributed in the hope that it will be useful,
 -- but WITHOUT ANY WARRANTY; without even the implied warranty of
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 -- GNU Lesser General Public License for more details.
-
+--
 -- You should have received a copy of the GNU Lesser General Public License
 -- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --
 
 local DEBUG_MODE = false
-local hot_reload = (DEBUG_MODE and minetest.global_exists("flow") and
-                    flow.hot_reload or {})
 flow = {}
 
 
@@ -95,6 +93,9 @@ size_getters.item_image_button = size_getters.button
 
 function size_getters.field(node)
     local label_w, label_h = get_label_size(node.label)
+
+    -- This is done in apply_padding as well but the label size has already
+    -- been calculated here
     if not node._padding_top and node.label and #node.label > 0 then
         node._padding_top = label_h
     end
@@ -123,6 +124,8 @@ function size_getters.checkbox(node)
     return w + 0.4, h
 end
 
+local field_elems = {field = true, pwdfield = true, textarea = true}
+
 local function apply_padding(node, x, y)
     local w, h = get_and_fill_in_sizes(node)
 
@@ -132,6 +135,11 @@ local function apply_padding(node, x, y)
         y = y + LABEL_OFFSET
     elseif node.type == "checkbox" then
         y = y + h / 2
+    elseif field_elems[node.type] and not node._padding_top and node.label and
+            #node.label > 0 then
+        -- Add _padding_top to fields with labels that have a fixed size set
+        local _, label_h = get_label_size(node.label)
+        node._padding_top = label_h
     end
 
     if node._padding_top then
@@ -423,8 +431,6 @@ function expand_child_boxes(box)
     for i = #box, 1, -1 do
         local node = box[i]
         -- node.visible ~= nil and not node.visible
-        -- WARNING: I'm not sure whether this should be called `visible`, I may
-        -- end up renaming it in the future. Use with caution.
         if node.visible == false then
             -- There's no need to try and expand anything inside invisible
             -- nodes since it won't affect the overall size.
@@ -445,7 +451,7 @@ local function render_ast(node)
     expand(node)
     local t3 = DEBUG_MODE and minetest.get_us_time()
     local res = {
-        formspec_version = 5,
+        formspec_version = 6,
         {type = "size", w = w, h = h},
     }
 
@@ -506,7 +512,12 @@ local function safe_tonumber(str)
     return 0
 end
 
+local C1_CHARS = "\194[\128-\159]"
 local field_value_transformers = {
+    field = function(value)
+        -- Remove control characters and newlines
+        return value:gsub("[%z\1-\8\10-\31\127]", ""):gsub(C1_CHARS, "")
+    end,
     tabheader = safe_tonumber,
     dropdown = safe_tonumber,
     checkbox = minetest.is_yes,
@@ -522,7 +533,9 @@ local field_value_transformers = {
 }
 
 local function default_field_value_transformer(value)
-    return value
+    -- Remove control characters (but preserve newlines)
+    -- Pattern by https://github.com/appgurueu
+    return value:gsub("[%z\1-\8\11-\31\127]", ""):gsub(C1_CHARS, "")
 end
 
 local default_value_fields = {
@@ -600,21 +613,26 @@ local function parse_callbacks(tree, ctx_form, auto_name_id)
                 local value = ctx_form[node_name]
                 if node.type == "dropdown" and not node.index_event then
                     -- Special case for dropdowns without index_event
-                    if node.items then
-                        if value == nil then
-                            ctx_form[node_name] = node.items[
-                                node.selected_idx or 1
-                            ]
-                        else
-                            local idx = table.indexof(node.items, value)
-                            if idx > 0 then
-                                node.selected_idx = idx
-                            end
+                    local items = node.items or {}
+                    if value == nil then
+                        ctx_form[node_name] = items[node.selected_idx or 1]
+                    else
+                        local idx = table.indexof(items, value)
+                        if idx > 0 then
+                            node.selected_idx = idx
                         end
                     end
 
                     node.selected_idx = node.selected_idx or 1
-                    saved_fields[node_name] = default_field_value_transformer
+
+                    -- Add a custom value transformer so that only values that
+                    -- were sent to the player are accepted
+                    saved_fields[node_name] = function(new_val)
+                        if table.indexof(items, new_val) > 0 then
+                            return new_val
+                        end
+                        return ctx_form[node_name]
+                    end
                 elseif value == nil then
                     -- If ctx.form[node_name] doesn't exist, then check whether
                     -- a default value is specified.
@@ -820,6 +838,47 @@ function Form:set_as_inventory_for(player, ctx)
     player:set_inventory_formspec(fs)
 end
 
+-- Declared here to be accessible by render_to_formspec_string
+local fs_process_events
+
+-- Prevent collisions in forms, but also ensure they don't happen across
+-- mutliple embedded forms within a single parent.
+-- Unique per-user to prevent players from making the counter wrap around for
+-- other players.
+local render_to_formspec_auto_name_ids = {}
+-- If `standalone` is set, this will return a standalone formspec, otherwise it
+-- will return a formspec that can be embedded and a table with its size and
+-- target formspec version
+function Form:render_to_formspec_string(player, ctx, standalone)
+    local name = player:get_player_name()
+    local info = minetest.get_player_information(name)
+    local tree, form_info = self:_render(player, ctx or {},
+        info and info.formspec_version, render_to_formspec_auto_name_ids[name])
+    local public_form_info
+    if not standalone then
+        local size = table.remove(tree, 1)
+        public_form_info = {w = size.w, h = size.h,
+            formspec_version = tree.formspec_version}
+        tree.formspec_version = nil
+    end
+    local fs = assert(formspec_ast.unparse(tree))
+    render_to_formspec_auto_name_ids[name] = form_info.auto_name_id
+    local function event(fields)
+        -- Just in case the player goes offline, we should not keep the player
+        -- reference. Nothing prevents the user from calling this function when
+        -- the player is offline, unlike the _real_ formspec submission.
+        local player = minetest.get_player_by_name(name)
+        if not player then
+            minetest.log("warning", "[flow] Player " .. name ..
+                " was offline when render_to_formspec_string event was" ..
+                " triggered. Events were not passed through.")
+            return nil
+        end
+        return fs_process_events(player, form_info, fields)
+    end
+    return fs, event, public_form_info
+end
+
 function Form:close(player)
     local name = player:get_player_name()
     local form_info = open_formspecs[name]
@@ -872,12 +931,8 @@ function flow.make_gui(build_func)
     return setmetatable({_build = build_func}, form_mt)
 end
 
-local function on_fs_input(player, formname, fields)
-    local name = player:get_player_name()
-    local form_infos = formname == "" and open_inv_formspecs or open_formspecs
-    local form_info = form_infos[name]
-    if not form_info or formname ~= form_info.formname then return end
-
+-- Declared locally above to be accessible to render_to_formspec_string
+function fs_process_events(player, form_info, fields)
     local callbacks = form_info.callbacks
     local ctx = form_info.ctx
     local redraw_if_changed = form_info.redraw_if_changed
@@ -888,18 +943,20 @@ local function on_fs_input(player, formname, fields)
     for field, transformer in pairs(form_info.saved_fields) do
         local raw_value = fields[field]
         if raw_value then
-            if #raw_value > 262144 then
+            if #raw_value > 60000 then
                 -- There's probably no legitimate reason for a client send a
                 -- large amount of data and very long strings have the
-                -- potential to break things.
+                -- potential to break things. Please open an issue if you
+                -- (somehow) need to use longer text in fields.
+                local name = player:get_player_name()
                 minetest.log("warning", "[flow] Player " .. name .. " tried" ..
-                    " submitting a large field value (>256 KiB), ignoring.")
+                    " submitting a large field value (>60 kB), ignoring.")
             else
                 local new_value = transformer(raw_value)
                 if ctx_form[field] ~= new_value then
                     if redraw_if_changed[field] then
                         redraw_fs = true
-                    elseif formname == "" then
+                    elseif form_info.formname == "" then
                         -- Update the inventory when the player closes it next
                         form_info.ctx_form_modified = true
                     end
@@ -910,11 +967,22 @@ local function on_fs_input(player, formname, fields)
     end
 
     -- Run on_event callbacks
-    for field, value in pairs(fields) do
-        if callbacks[field] and callbacks[field](player, ctx, value) then
+    for field in pairs(fields) do
+        if callbacks[field] and callbacks[field](player, ctx) then
             redraw_fs = true
         end
     end
+
+    return redraw_fs
+end
+
+minetest.register_on_player_receive_fields(function(player, formname, fields)
+    local name = player:get_player_name()
+    local form_infos = formname == "" and open_inv_formspecs or open_formspecs
+    local form_info = form_infos[name]
+    if not form_info or formname ~= form_info.formname then return end
+
+    local redraw_fs = fs_process_events(player, form_info, fields)
 
     if form_infos[name] ~= form_info then return true end
 
@@ -929,30 +997,14 @@ local function on_fs_input(player, formname, fields)
         update_form(form_info.self, player, form_info)
     end
     return true
-end
+end)
 
-local function on_leaveplayer(player)
+minetest.register_on_leaveplayer(function(player)
     local name = player:get_player_name()
     open_formspecs[name] = nil
     open_inv_formspecs[name] = nil
-end
-
-if DEBUG_MODE then
-    flow.hot_reload = {on_fs_input, on_leaveplayer}
-    if not hot_reload[1] then
-        minetest.register_on_player_receive_fields(function(...)
-            return flow.hot_reload[1](...)
-        end)
-    end
-    if not hot_reload[2] then
-        minetest.register_on_leaveplayer(function(...)
-            return flow.hot_reload[2](...)
-        end)
-    end
-else
-    minetest.register_on_player_receive_fields(on_fs_input)
-    minetest.register_on_leaveplayer(on_leaveplayer)
-end
+    render_to_formspec_auto_name_ids[name] = nil
+end)
 
 -- Extra GUI elements
 
