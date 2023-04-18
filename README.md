@@ -271,6 +271,21 @@ gui.Label{label="I am centered!", align_h = "centre"},
 This applies to other elements as well, because using HBox and Spacer to centre
 elements creates unnecessary containers.
 
+#### `gui.Nil`
+
+A tool to allow for ternary-ish conditional widgets:
+
+```lua
+gui.VBox{
+    gui.Label{ label = "The box below is only present if the boolean is truthy" },
+    the_boolean and gui.Box{ color = "#FF0000" } or gui.Nil{},
+}
+```
+
+Use sparingly, flow still has to process each `Nil` object to be able to know to
+remove it, and thus could still slow things down. The fastest element is one
+that doesn't exist, and thus doesn't need processing.
+
 #### `gui.Stack`
 
 This container element places its children on top of each other. All child
