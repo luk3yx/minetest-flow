@@ -282,11 +282,12 @@ describe("Flow", function()
 
     it("ignores gui.Nil", function()
         test_render(gui.VBox{
+            min_h = 5, -- Make sure gui.Nil doesn't expand
             gui.Box{w = 1, h = 1, color = "red"},
             gui.Nil{},
             gui.Box{w = 1, h = 1, color = "green"},
         }, [[
-            size[1.6,1.6]
+            size[1.6,5.6]
             box[0.3,0.3;1,1;red]
             box[0.3,1.5;1,1;green]
         ]])
