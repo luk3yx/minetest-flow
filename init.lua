@@ -1176,7 +1176,7 @@ end
 -- for use in inline <bool> and <a> or <b> type inline ifs
 function gui.Nil(def)
     def.expand = false
-    return gui.Spacer(def)
+    return gui.Toolip(def)
 end
 
 -- Prevent any further modifications to the gui table
