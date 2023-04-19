@@ -1173,10 +1173,10 @@ function gui.Spacer(def)
     return def
 end
 
--- for use in inline <bool> and <a> or <b> type inline ifs
+-- For use in inline <bool> and <a> or <b> type inline ifs
 function gui.Nil(def)
-    def.expand = false
-    return gui.Toolip(def)
+    def.visible = false
+    return gui.Tooltip(def)
 end
 
 -- Prevent any further modifications to the gui table
