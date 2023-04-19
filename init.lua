@@ -1173,6 +1173,14 @@ function gui.Spacer(def)
     return def
 end
 
+-- For use in inline <bool> and <a> or <b> type inline ifs
+function gui.Nil(def)
+    -- Tooltip elements are ignored when layouting and setting visible = false
+    -- ensures that the element won't get added to the resulting formspec
+    def.visible = false
+    return gui.Tooltip(def)
+end
+
 -- Prevent any further modifications to the gui table
 function gui_mt.__newindex()
     error("Cannot modifiy gui table")
