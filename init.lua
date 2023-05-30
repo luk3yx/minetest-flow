@@ -598,7 +598,7 @@ local function parse_callbacks(tree, ctx_form, auto_name_id)
         end
 
         local node_name = node.name
-        if node_name then
+        if node_name and node_name ~= "" then
             local value_field = default_value_fields[node.type]
             if value_field then
                 -- Add the corresponding value transformer transformer to
