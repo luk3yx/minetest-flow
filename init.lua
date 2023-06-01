@@ -459,13 +459,16 @@ local function render_ast(node)
     if node.no_prepend then
         res[#res + 1] = {type = "no_prepend"}
     end
-    if node.fbgcolor then
-        -- TODO: Fix this
+    if node.fbgcolor or node.bgcolor or node.bg_fullscreen then
         res[#res + 1] = {
             type = "bgcolor",
-            bgcolor = node.fbgcolor,
-            fullscreen = true
+            bgcolor = node.bgcolor,
+            fbgcolor = node.fbgcolor,
+            fullscreen = node.bg_fullscreen
         }
+        node.bgcolor = nil
+        node.fbgcolor = nil
+        node.bg_fullscreen = nil
     end
 
     for field in formspec_ast.find(node, 'field') do

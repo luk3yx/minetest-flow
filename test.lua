@@ -94,6 +94,45 @@ local function test_render(build_func, output)
 end
 
 describe("Flow", function()
+    describe("bgcolor settings", function ()
+        it("renders bgcolor only correctly", function ()
+            test_render(gui.VBox{ bgcolor = "green" }, [[
+                size[0.6,0.6]
+                bgcolor[green]
+            ]])
+        end)
+        it("renders fbgcolor only correctly", function ()
+            test_render(gui.VBox{ fbgcolor = "green" }, [[
+                size[0.6,0.6]
+                bgcolor[;;green]
+            ]])
+        end)
+        it("renders both correctly", function ()
+            test_render(gui.VBox{ bgcolor = "orange", fbgcolor = "green" }, [[
+                size[0.6,0.6]
+                bgcolor[orange;;green]
+            ]])
+        end)
+        it("passes fullscreen setting", function ()
+            test_render(gui.VBox{ bg_fullscreen = true }, [[
+                size[0.6,0.6]
+                bgcolor[;true]
+            ]])
+        end)
+        it("passes fullscreen setting when string", function ()
+            test_render(gui.VBox{ bg_fullscreen = "both" }, [[
+                size[0.6,0.6]
+                bgcolor[;both]
+            ]])
+        end)
+        it("handles it all together", function ()
+            test_render(gui.VBox{ bgcolor = "blue", fbgcolor = "red", bg_fullscreen = "neither" }, [[
+                size[0.6,0.6]
+                bgcolor[blue;neither;red]
+            ]])
+        end)
+    end)
+
     it("renders labels correctly", function()
         test_render(gui.Label{label = "Hello world!"}, [[
             size[3.12,1]
