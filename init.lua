@@ -459,7 +459,14 @@ local function render_ast(node)
     if node.no_prepend then
         res[#res + 1] = {type = "no_prepend"}
     end
-    if node.fbgcolor or node.bgcolor or node.bg_fullscreen then
+    if node.fbgcolor or node.bgcolor or node.bg_fullscreen ~= nil then
+        -- Hack to prevent breaking mods that relied on the broken behaviour of
+        -- fbgcolor
+        if node.fbgcolor == "#08080880" and node.bgcolor == nil and
+                node.bg_fullscreen == nil then
+            node.bg_fullscreen = true
+        end
+
         res[#res + 1] = {
             type = "bgcolor",
             bgcolor = node.bgcolor,
