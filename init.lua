@@ -465,6 +465,7 @@ local function render_ast(node)
         if node.fbgcolor == "#08080880" and node.bgcolor == nil and
                 node.bg_fullscreen == nil then
             node.bg_fullscreen = true
+            node.fbgcolor = nil
         end
 
         res[#res + 1] = {
