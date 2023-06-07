@@ -443,7 +443,7 @@ end
 
 -- Renders the GUI into hopefully valid AST
 -- This won't fill in names
-local function render_ast(node)
+local function render_ast(node, embedded)
     local t1 = DEBUG_MODE and minetest.get_us_time()
     node.padding = node.padding or 0.3
     local w, h = apply_padding(node, 0, 0)
@@ -456,7 +456,7 @@ local function render_ast(node)
     }
 
     -- TODO: Consider a nicer place to put these parameters
-    if node.no_prepend then
+    if node.no_prepend and not embedded then
         res[#res + 1] = {type = "no_prepend"}
     end
     if node.fbgcolor or node.bgcolor or node.bg_fullscreen ~= nil then
@@ -488,7 +488,7 @@ local function render_ast(node)
     end
 
     -- Add the root element's background image as a fullscreen one
-    if node.bgimg then
+    if node.bgimg and not embedded then
         res[#res + 1] = {
             type = node.bgimg_middle and "background9" or "background",
             texture_name = node.bgimg, middle_x = node.bgimg_middle,
@@ -566,10 +566,10 @@ local sensible_defaults = {
 }
 
 -- Removes on_event from a formspec_ast tree and returns a callbacks table
-local function parse_callbacks(tree, ctx_form, auto_name_id)
+local function parse_callbacks(tree, ctx_form, auto_name_id,
+        replace_backgrounds)
     local callbacks = {}
     local saved_fields = {}
-    local seen_scroll_container = false
     for node in formspec_ast.walk(tree) do
         if node.type == "container" then
             if node.bgcolor then
@@ -597,15 +597,15 @@ local function parse_callbacks(tree, ctx_form, auto_name_id)
                     callbacks.quit = node.on_quit
                 end
             end
-        elseif seen_scroll_container then
-            -- Work around a Minetest bug with scroll containers not scrolling
-            -- backgrounds.
+        elseif replace_backgrounds then
             if (node.type == "background" or node.type == "background9") and
                     not node.auto_clip then
                 node.type = "image"
             end
         elseif node.type == "scroll_container" then
-            seen_scroll_container = true
+            -- Work around a Minetest bug with scroll containers not scrolling
+            -- backgrounds.
+            replace_backgrounds = true
         end
 
         local node_name = node.name
@@ -730,7 +730,7 @@ end
 
 
 -- Renders a GUI into a formspec_ast tree and a table with callbacks.
-function Form:_render(player, ctx, formspec_version, id1)
+function Form:_render(player, ctx, formspec_version, id1, embedded)
     local used_ctx_vars = {}
 
     -- Wrap ctx.form
@@ -761,8 +761,9 @@ function Form:_render(player, ctx, formspec_version, id1)
     -- iterations of the form to work around race conditions
     if not id1 or id1 > 1e6 then id1 = 0 end
 
-    local tree = render_ast(box)
-    local callbacks, saved_fields, id2 = parse_callbacks(tree, orig_form, id1)
+    local tree = render_ast(box, embedded)
+    local callbacks, saved_fields, id2 = parse_callbacks(tree, orig_form, id1,
+        embedded)
 
     local redraw_if_changed = {}
     for var in pairs(used_ctx_vars) do
@@ -864,7 +865,8 @@ function Form:render_to_formspec_string(player, ctx, standalone)
     local name = player:get_player_name()
     local info = minetest.get_player_information(name)
     local tree, form_info = self:_render(player, ctx or {},
-        info and info.formspec_version, render_to_formspec_auto_name_ids[name])
+        info and info.formspec_version, render_to_formspec_auto_name_ids[name],
+        not standalone)
     local public_form_info
     if not standalone then
         local size = table.remove(tree, 1)
