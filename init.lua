@@ -327,6 +327,7 @@ local function expand(box)
     elseif box_type == "stack" or
             (box_type == "padding" and box[1].expand) then
         box.type = "container"
+        box._enable_bgimg_hack = true
         for _, node in ipairs(box) do
             if not invisible_elems[node.type] then
                 local width, height = node.w or 0, node.h or 0
@@ -602,7 +603,7 @@ local function parse_callbacks(tree, ctx_form, auto_name_id,
                     not node.auto_clip then
                 node.type = "image"
             end
-        elseif node.type == "scroll_container" then
+        elseif node.type == "scroll_container" or node._enable_bgimg_hack then
             -- Work around a Minetest bug with scroll containers not scrolling
             -- backgrounds.
             replace_backgrounds = true
