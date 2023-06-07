@@ -598,12 +598,13 @@ local function parse_callbacks(tree, ctx_form, auto_name_id,
                     callbacks.quit = node.on_quit
                 end
             end
+            replace_backgrounds = replace_backgrounds or node._enable_bgimg_hack
         elseif replace_backgrounds then
             if (node.type == "background" or node.type == "background9") and
                     not node.auto_clip then
                 node.type = "image"
             end
-        elseif node.type == "scroll_container" or node._enable_bgimg_hack then
+        elseif node.type == "scroll_container" then
             -- Work around a Minetest bug with scroll containers not scrolling
             -- backgrounds.
             replace_backgrounds = true
