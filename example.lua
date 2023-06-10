@@ -109,8 +109,10 @@ local my_gui = flow.make_gui(function(player, ctx)
                 },
             },
 
-            gui.Label{label=S("Items are expanded in the opposite\ndirection," ..
-                              " however:")},
+            gui.Label{
+                label=S("Items are expanded in the opposite\ndirection,"
+                     .. " however:")
+            },
             gui.HBox{
                 min_h = 2,
                 gui.Box{
@@ -200,8 +202,14 @@ local my_gui = flow.make_gui(function(player, ctx)
                 gui.Checkbox{name = "box2", label = S"Second box"},
             },
             gui.VBox{
-                gui.Checkbox{name = "vbox", label = S"Use vbox instead of hbox"},
-                gui.Checkbox{name = "expand_box2", label = S"Expand second box"},
+                gui.Checkbox{
+                    name = "vbox",
+                    label = S"Use vbox instead of hbox"
+                },
+                gui.Checkbox{
+                    name = "expand_box2",
+                    label = S"Expand second box"
+                },
             },
         },
         try_it_yourself_box,
