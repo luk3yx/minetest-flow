@@ -1,6 +1,6 @@
 -- You can run /flow-example in singleplayer to open this form
 local gui = flow.widgets
-local S = minetest.get_translator(minetest.get_current_modname())
+local S = minetest.get_translator("flow")
 
 local elements = {"box", "label", "image", "field", "checkbox", "list"}
 local alignments = {"auto", "start", "end", "centre", "fill"}

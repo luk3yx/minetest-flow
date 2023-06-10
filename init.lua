@@ -19,7 +19,7 @@
 
 local DEBUG_MODE = false
 flow = {}
-local S = minetest.get_translator(minetest.get_current_modname())
+local S = minetest.get_translator("flow")
 
 
 local Form = {}
