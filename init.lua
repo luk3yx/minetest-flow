@@ -1203,7 +1203,7 @@ if minetest.is_singleplayer() then
     local example_form
     minetest.register_chatcommand("flow-example", {
         privs = {server = true},
-        help = S"Shows an example formspec",
+        help = S"Shows an example form",
         func = function(name)
             -- Only load example.lua when it's needed
             if not example_form then
