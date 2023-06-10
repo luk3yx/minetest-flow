@@ -2,7 +2,7 @@
 
 ### init.lua ###
 Page @1 of @2=
-Shows an example formspec=
+Shows an example form=
 
 ### example.lua ###
 Hello world!=
