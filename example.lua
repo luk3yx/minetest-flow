@@ -1,5 +1,6 @@
 -- You can run /flow-example in singleplayer to open this form
 local gui = flow.widgets
+local S = minetest.get_translator("flow")
 
 local elements = {"box", "label", "image", "field", "checkbox", "list"}
 local alignments = {"auto", "start", "end", "centre", "fill"}
@@ -58,19 +59,19 @@ local my_gui = flow.make_gui(function(player, ctx)
 
         gui.HBox{
             gui.Image{w = 1, h = 1, texture_name = "air.png"},
-            gui.Label{label = "Hello world!"},
+            gui.Label{label = S"Hello world!"},
         },
-        gui.Label{label="This is an example form."},
+        gui.Label{label=S"This is an example form."},
         gui.Checkbox{
             name = "checkbox",
 
             -- flow will detect that you have accessed ctx.form.checkbox and
             -- will automatically redraw the formspec if the value is changed.
-            label = ctx.form.checkbox and "Uncheck me!" or "Check me!",
+            label = ctx.form.checkbox and S"Uncheck me!" or S"Check me!",
         },
         gui.Button{
             -- Names are optional
-            label = "Toggle checkbox",
+            label = S"Toggle checkbox",
 
             -- Important: Do not use the `player` and `ctx` variables from the
             -- above formspec.
@@ -79,14 +80,14 @@ local my_gui = flow.make_gui(function(player, ctx)
                 ctx.form.checkbox = not ctx.form.checkbox
 
                 -- Send a chat message
-                minetest.chat_send_player(player:get_player_name(), "Toggled!")
+                minetest.chat_send_player(player:get_player_name(), S"Toggled!")
 
                 -- Return true to tell flow to redraw the formspec
                 return true
             end,
         },
 
-        gui.Label{label="A demonstration of expansion:"},
+        gui.Label{label=S"A demonstration of expansion:"},
 
         -- The finer details of scroll containers are handled automatically.
         -- Clients that don't support scroll_container[] will see a paginator
@@ -98,8 +99,8 @@ local my_gui = flow.make_gui(function(player, ctx)
             -- order changes.
             name = "vbox1",
 
-            gui.Label{label="By default, objects do not expand\nin the " ..
-                            "same direction as the hbox/vbox:"},
+            gui.Label{label=S("By default, objects do not expand\nin the " ..
+                              "same direction as the hbox/vbox:")},
             gui.HBox{
                 gui.Box{
                     w = 1,
@@ -108,8 +109,10 @@ local my_gui = flow.make_gui(function(player, ctx)
                 },
             },
 
-            gui.Label{label="Items are expanded in the opposite\ndirection," ..
-                            " however:"},
+            gui.Label{
+                label=S("Items are expanded in the opposite\ndirection,"
+                     .. " however:")
+            },
             gui.HBox{
                 min_h = 2,
                 gui.Box{
@@ -119,8 +122,8 @@ local my_gui = flow.make_gui(function(player, ctx)
                 },
             },
 
-            gui.Label{label="To automatically expand an object, add\n" ..
-                            "`expand = true` to its definition."},
+            gui.Label{label=S("To automatically expand an object, add\n" ..
+                              "`expand = true` to its definition.")},
             gui.HBox{
                 gui.Box{
                     w = 1,
@@ -130,8 +133,8 @@ local my_gui = flow.make_gui(function(player, ctx)
                 },
             },
 
-            gui.Label{label="Multiple expanded items will share the\n" ..
-                            "remaining space evenly."},
+            gui.Label{label=S("Multiple expanded items will share the\n" ..
+                              "remaining space evenly.")},
 
             gui.HBox{
                 gui.Box{
@@ -164,10 +167,10 @@ local my_gui = flow.make_gui(function(player, ctx)
             },
         },
 
-        gui.Label{label="Try it yourself!"},
+        gui.Label{label=S"Try it yourself!"},
         gui.HBox{
             gui.VBox{
-                gui.Label{label="Element:"},
+                gui.Label{label=S"Element:"},
                 gui.Dropdown{
                     name = "element",
                     items = elements,
@@ -195,12 +198,18 @@ local my_gui = flow.make_gui(function(player, ctx)
         },
         gui.HBox{
             gui.VBox{
-                gui.Checkbox{name = "expand", label = "Expand"},
-                gui.Checkbox{name = "box2", label = "Second box"},
+                gui.Checkbox{name = "expand", label = S"Expand"},
+                gui.Checkbox{name = "box2", label = S"Second box"},
             },
             gui.VBox{
-                gui.Checkbox{name = "vbox", label = "Use vbox instead of hbox"},
-                gui.Checkbox{name = "expand_box2", label = "Expand second box"},
+                gui.Checkbox{
+                    name = "vbox",
+                    label = S"Use vbox instead of hbox"
+                },
+                gui.Checkbox{
+                    name = "expand_box2",
+                    label = S"Expand second box"
+                },
             },
         },
         try_it_yourself_box,

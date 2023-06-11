@@ -19,6 +19,7 @@
 
 local DEBUG_MODE = false
 flow = {}
+local S = minetest.get_translator("flow")
 
 
 local Form = {}
@@ -1074,7 +1075,7 @@ function gui.PaginatedVBox(def)
                 end,
             },
             gui.Label {
-                label = "Page " .. current_page .. " of " .. #pages,
+                label = S("Page @1 of @2", current_page, #pages),
                 align_h = "centre",
                 expand = true,
             },
@@ -1206,7 +1207,7 @@ if minetest.is_singleplayer() then
     local example_form
     minetest.register_chatcommand("flow-example", {
         privs = {server = true},
-        help = "Shows an example formspec",
+        help = S"Shows an example form",
         func = function(name)
             -- Only load example.lua when it's needed
             if not example_form then

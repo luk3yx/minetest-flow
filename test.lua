@@ -25,6 +25,11 @@ minetest.is_singleplayer = dummy
 minetest.get_player_information = dummy
 minetest.show_formspec = dummy
 
+function minetest.get_translator(modname)
+    assert(modname == "flow")
+    return function(str) return str end
+end
+
 -- Stub minetest player api
 local function stub_player(name)
     assert(type(name) == "string")

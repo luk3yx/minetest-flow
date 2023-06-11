@@ -1,0 +1,30 @@
+# textdomain: flow
+
+### init.lua ###
+Page @1 of @2=
+Shows an example form=
+
+### example.lua ###
+Hello world!=
+This is an example form.=
+
+# checkbox labels and states
+Uncheck me!=
+Check me!=
+Toggle checkbox=
+Toggled!=
+
+# expansion
+A demonstration of expansion:=
+By default, objects do not expand@nin the same direction as the hbox/vbox:=
+Items are expanded in the opposite@ndirection, however:=
+To automatically expand an object, add@n`expand = true` to its definition.=
+Multiple expanded items will share the@nremaining space evenly.=
+
+# Demo
+Try it yourself!=
+Element:=
+Expand=
+Second box=
+Use vbox instead of hbox=
+Expand second box=
