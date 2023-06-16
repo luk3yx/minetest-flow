@@ -899,7 +899,7 @@ function Form:show(player, ctx)
 end
 
 function Form:show_hud(player, ctx)
-    local info = minetest.get_player_information(name)
+    local info = minetest.get_player_information(player:get_player_name())
     local tree = self:_render(player, ctx or {}, nil, nil, nil,
         info and info.lang_code)
     hud_fs.show_hud(player, self, tree)
