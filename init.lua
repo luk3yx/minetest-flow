@@ -21,28 +21,90 @@ local DEBUG_MODE = false
 flow = {}
 local S = minetest.get_translator("flow")
 
-
 local Form = {}
 
 local min, max = math.min, math.max
 
-local function strip_escape_sequences(str)
-    return (str:gsub("\27%([^)]+%)", ""):gsub("\27.", ""))
+-- Estimates the width of a valid UTF-8 string, ignoring any escape sequences.
+-- This function hopefully works with most (but not all) scripts, maybe it
+-- could still be improved.
+local byte = string.byte
+local LPAREN = byte("(")
+local function naive_str_width(str)
+    local w = 0
+    local prev_w = 0
+    local line_count = 1
+    local i = 1
+    local str_length = #str
+    while i <= str_length do
+        local char = byte(str, i)
+        if char == 0x1b then
+            -- Ignore escape sequences
+            i = i + 1
+            if byte(str, i) == LPAREN then
+                i = str:find(")", i + 1, true) or str_length
+            end
+        elseif char == 0xe1 then
+            if (byte(str, i + 1) or 0) < 0x84 then
+                -- U+1000 - U+10FF
+                w = w + 1
+            else
+                -- U+1100 - U+2000
+                w = w + 2
+            end
+            i = i + 2
+        elseif char > 0xe1 and char < 0xf5 then
+            -- U+2000 - U+10FFFF
+            w = w + 2
+            i = i + 2
+        elseif char == 0x0a then
+            -- Newlines: Reset the width and increase the line count
+            prev_w = max(prev_w, w)
+            w = 0
+            line_count = line_count + 1
+        elseif char < 0x80 or char > 0xbf then
+            -- Everything except UTF-8 continuation sequences
+            w = w + 1
+        end
+        i = i + 1
+    end
+    return max(w, prev_w), line_count
 end
 
 local LABEL_HEIGHT = 0.4
 local LABEL_OFFSET = LABEL_HEIGHT / 2
-local CHAR_WIDTH = 0.21 -- 0.2
+local CHAR_WIDTH = 0.21
+
+-- The "current_lang" variable isn't ideal but means that the language will be
+-- known inside ScrollableVBox etc
+local current_lang
+
+-- get_translated_string doesn't exist in MT 5.2.0 and older
+local get_translated_string = minetest.get_translated_string or function(_, s)
+    return s
+end
+
 local function get_lines_size(lines)
     local w = 0
     for _, line in ipairs(lines) do
-        w = max(w, #strip_escape_sequences(line) * CHAR_WIDTH)
+        -- Translate the string if necessary
+        if current_lang and current_lang ~= "" and current_lang ~= "en" then
+            line = get_translated_string(current_lang, line)
+        end
+
+        w = max(w, naive_str_width(line) * CHAR_WIDTH)
     end
     return w, LABEL_HEIGHT * #lines
 end
 
 local function get_label_size(label)
-    return get_lines_size((label or ""):split("\n", true))
+    label = label or ""
+    if current_lang and current_lang ~= "" and current_lang ~= "en" then
+        label = get_translated_string(current_lang, label)
+    end
+
+    local longest_line_width, line_count = naive_str_width(label)
+    return longest_line_width * CHAR_WIDTH, line_count * LABEL_HEIGHT
 end
 
 local size_getters = {}
@@ -733,8 +795,9 @@ end
 
 
 -- Renders a GUI into a formspec_ast tree and a table with callbacks.
-function Form:_render(player, ctx, formspec_version, id1, embedded)
+function Form:_render(player, ctx, formspec_version, id1, embedded, lang_code)
     local used_ctx_vars = {}
+    current_lang = lang_code
 
     -- Wrap ctx.form
     local orig_form = ctx.form or {}
@@ -777,6 +840,8 @@ function Form:_render(player, ctx, formspec_version, id1, embedded)
         end
     end
 
+    current_lang = nil
+
     return tree, {
         self = self,
         callbacks = callbacks,
@@ -792,7 +857,8 @@ local function prepare_form(self, player, formname, ctx, auto_name_id)
     -- local t = DEBUG_MODE and minetest.get_us_time()
     local info = minetest.get_player_information(name)
     local tree, form_info = self:_render(player, ctx,
-        info and info.formspec_version, auto_name_id)
+        info and info.formspec_version, auto_name_id, false,
+        info and info.lang_code)
 
     -- local t2 = DEBUG_MODE and minetest.get_us_time()
     local fs = assert(formspec_ast.unparse(tree))
@@ -833,7 +899,9 @@ function Form:show(player, ctx)
 end
 
 function Form:show_hud(player, ctx)
-    local tree = self:_render(player, ctx or {})
+    local info = minetest.get_player_information(name)
+    local tree = self:_render(player, ctx or {}, nil, nil, nil,
+        info and info.lang_code)
     hud_fs.show_hud(player, self, tree)
 end
 
@@ -869,7 +937,7 @@ function Form:render_to_formspec_string(player, ctx, standalone)
     local info = minetest.get_player_information(name)
     local tree, form_info = self:_render(player, ctx or {},
         info and info.formspec_version, render_to_formspec_auto_name_ids[name],
-        not standalone)
+        not standalone, info and info.lang_code)
     local public_form_info
     if not standalone then
         local size = table.remove(tree, 1)

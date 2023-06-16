@@ -70,7 +70,11 @@ string.split = string.split or function(str, chr)
 end
 
 -- Load flow
-dofile('init.lua')
+local f = assert(io.open("init.lua"))
+local code = f:read("*a") .. "\nreturn naive_str_width"
+f:close()
+local naive_str_width = assert((loadstring or load)(code))()
+
 local gui = flow.widgets
 
 -- "Normalise" the AST by flattening then parsing/unparsing to remove extra
@@ -436,6 +440,46 @@ describe("Flow", function()
             assert.equals(manual_spy[2], ctx, "context was next")
 
             minetest.get_player_by_name = nil
+        end)
+    end)
+
+    describe("naive_str_width", function()
+        it("works in a simple string", function()
+            local w, h = naive_str_width("Hello world!")
+            assert.equals(w, 12)
+            assert.equals(h, 1)
+        end)
+
+        it("works with multi-line strings", function()
+            local w, h = naive_str_width("Hello world!\nLine 2")
+            assert.equals(w, 12)
+            assert.equals(h, 2)
+
+            w, h = naive_str_width("Hello world!\nThis is a test")
+            assert.equals(w, 14)
+            assert.equals(h, 2)
+        end)
+
+        it("works with Cyrillic script", function()
+            local w, h = naive_str_width("Привіт Світ")
+            assert.equals(w, 11)
+            assert.equals(h, 1)
+        end)
+
+        it("works with full width characters", function()
+            local w, h = naive_str_width("你好世界\n123456")
+            assert.equals(w, 8)
+            assert.equals(h, 2)
+        end)
+
+        it("strips escape codes", function()
+            local w, h = naive_str_width("\27(T@test)Hello \27Fworld\27E!\27E")
+            assert.equals(w, 12)
+            assert.equals(h, 1)
+
+            w, h = naive_str_width("\27(c@blue)Test\27(c@#ffffff)\n123")
+            assert.equals(w, 4)
+            assert.equals(h, 2)
         end)
     end)
 end)
