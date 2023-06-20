@@ -417,6 +417,13 @@ end)
 ![Screenshot](https://user-images.githubusercontent.com/3182651/212222545-baee3669-15cd-410d-a638-c63b65a8811b.png)
 
 </details><details>
+<summary><b><code>bgcolor[]</code></b></summary>
+
+You can set `bgcolor = "#123"`, `fbgcolor = "#123"`, and
+`bg_fullscreen = true` on the root element to set a background colour. The
+values for these correspond to the [`bgcolor` formspec element](https://minetest.gitlab.io/minetest/formspec/#bgcolorbgcolorfullscreenfbgcolor).
+
+</details><details>
 <summary><b>Using a form as an inventory</b></summary>
 
 A form can be set as the player inventory. Flow internally generates the
