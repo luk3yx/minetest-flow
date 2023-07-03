@@ -448,11 +448,15 @@ local function expand(box)
             if node.expand then
                 expandable[node] = i
                 expand_count = expand_count + 1
+            elseif node.type == "label" and align_h == "align_h" then
+                -- Use the image_button hack even if the label isn't expanded
+                align_types[node.align_h or "auto"](node, "x", "w", 0)
             end
 
             -- Nodes are expanded in the other direction no matter what their
             -- expand setting is
-            if box_h > height then
+            if box_h > height or (node.type == "label" and
+                    align_v == "align_h") then
                 align_types[node[align_v] or "auto"](node, y, h,
                     box_h - height - (node.padding or 0) * 2 -
                     (y == "y" and node._padding_top or 0), true)
@@ -478,11 +482,7 @@ local function expand(box)
         -- space if this is in a horizontal box.
         for node in pairs(expandable) do
             if node.type == "label" then
-                local align = node.align_h or "auto"
-                if align == "centre" or align == "center" or align == "fill" or
-                        (align == "auto" and node.expand) then
-                    align_types.fill(node, "x", "w", 0)
-                end
+                align_types[node.align_h or "auto"](node, "x", "w", 0)
             end
         end
     end
