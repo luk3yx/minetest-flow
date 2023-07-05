@@ -203,6 +203,11 @@ local function apply_padding(node, x, y)
         -- Add _padding_top to fields with labels that have a fixed size set
         local _, label_h = get_label_size(node.label)
         node._padding_top = label_h
+    elseif node.type == "tabheader" and w > 0 and h > 0 then
+        -- Handle tabheader if the width and height are set
+        -- I'm not sure what to do with tabheaders that don't have a width or
+        -- height set.
+        y = y + h
     end
 
     if node._padding_top then
