@@ -24,6 +24,8 @@ Vaguely inspired by Flutter and GTK.
  - No having to worry about state.
  - Values of fields, scrollbars, checkboxes, etc are remembered when
    redrawing a form and are automatically applied.
+ - Has an [inspector mod](https://content.minetest.net/packages/luk3yx/flow_inspector/)
+   to help with developing and debugging forms.
 
 ## Limitations
 
