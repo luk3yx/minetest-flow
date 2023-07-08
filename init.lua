@@ -309,29 +309,51 @@ function align_types.fill(node, x, w, extra_space)
 
         -- Hack
         node.type = "container"
+
+        -- Reset bgimg, some games apply styling to all image_buttons inside
+        -- the formspec prepend
         node[1] = {
+            type = "style",
+            -- MT 5.1.0 only supports one style selector
+            selectors = {"\1"},
+
+            -- bgimg_pressed is included for 5.1.0 support
+            -- bgimg_hovered is unnecessary as it was added in 5.2.0 (which
+            -- also adds support for :hovered and :pressed)
+            props = {bgimg = "", bgimg_pressed = ""},
+        }
+
+        -- Use the newer pressed selector as well in case the deprecated one is
+        -- removed
+        node[2] = {
+            type = "style",
+            selectors = {"\1:hovered", "\1:pressed"},
+            props = {bgimg = ""},
+        }
+
+        node[3] = {
             type = "image_button",
             texture_name = "blank.png",
             drawborder = false,
             x = 0, y = 0,
             w = node.w + extra_space, h = node.h,
-            label = node.label,
+            name = "\1", label = node.label,
         }
 
         -- Overlay button to prevent clicks from doing anything
-        node[2] = {
+        node[4] = {
             type = "image_button",
             texture_name = "blank.png",
             drawborder = false,
             x = 0, y = 0,
             w = node.w + extra_space, h = node.h,
-            label = "",
+            name = "\1", label = "",
         }
 
         node.y = node.y - LABEL_OFFSET
         node.label = nil
         node._label_hack = true
-        assert(#node == 2)
+        assert(#node == 4)
     end
 
     if node[w] then
