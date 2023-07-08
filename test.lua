@@ -311,7 +311,7 @@ describe("Flow", function()
 
             gui.List{inventory_location = "a", list_name = "b", w = 2, h = 2},
             gui.Style{selectors = {"test"}, props = {prop = "value"}},
-        }, [[
+        }, ([[
             size[3.6,3.6]
             field_close_on_enter[4;false]
             field_close_on_enter[5;false]
@@ -320,12 +320,14 @@ describe("Flow", function()
             field[0.3,0.7;3,2.6;4;Test;]
             field[0.3,0.3;3,3;5;;]
 
-            image_button[0.3,1.6;3,0.4;blank.png;;Test;;false]
-            image_button[0.3,1.6;3,0.4;blank.png;;;;false]
+            style[\1;bgimg=;bgimg_pressed=]
+            style[\1:hovered,\1:pressed;bgimg=]
+            image_button[0.3,1.6;3,0.4;blank.png;\1;Test;;false]
+            image_button[0.3,1.6;3,0.4;blank.png;\1;;;false]
 
             list[a;b;0.675,0.675;2,2]
             style[test;prop=value]
-        ]])
+        ]]):gsub("\\1", "\1"))
     end)
 
     it("ignores gui.Nil", function()
