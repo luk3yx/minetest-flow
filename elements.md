@@ -12,7 +12,7 @@ gui.AnimatedImage {
     w = 1,
     h = 2,
     name = "my_animated_image", -- Optional
-    texture_name = "Hello world!",
+    texture_name = "texture.png",
     frame_count = 3,
     frame_duration = 4,
     frame_start = 5, -- Optional
@@ -87,7 +87,7 @@ gui.Dropdown {
     w = 1, -- Optional
     h = 2, -- Optional
     name = "my_dropdown", -- Optional
-    items = "Hello world!",
+    items = {"Hello world!", ...},
     selected_idx = 3,
     index_event = false, -- Optional
 }
@@ -131,7 +131,7 @@ Equivalent to Minetest's `image[]` element.
 gui.Image {
     w = 1,
     h = 2,
-    texture_name = "Hello world!",
+    texture_name = "texture.png",
     middle_x = 3, -- Optional
     middle_y = 4, -- Optional
     middle_x2 = 5, -- Optional
@@ -148,12 +148,12 @@ Equivalent to Minetest's `image_button[]` element.
 gui.ImageButton {
     w = 1,
     h = 2,
-    texture_name = "Hello world!",
+    texture_name = "texture.png",
     name = "my_image_button", -- Optional
     label = "Hello world!",
     noclip = false, -- Optional
     drawborder = false, -- Optional
-    pressed_texture_name = "Hello world!", -- Optional
+    pressed_texture_name = "texture.png", -- Optional
 }
 ```
 
@@ -166,12 +166,12 @@ Equivalent to Minetest's `image_button_exit[]` element.
 gui.ImageButtonExit {
     w = 1,
     h = 2,
-    texture_name = "Hello world!",
+    texture_name = "texture.png",
     name = "my_image_button_exit", -- Optional
     label = "Hello world!",
     noclip = false, -- Optional
     drawborder = false, -- Optional
-    pressed_texture_name = "Hello world!", -- Optional
+    pressed_texture_name = "texture.png", -- Optional
 }
 ```
 
@@ -240,7 +240,7 @@ gui.Model {
     h = 2,
     name = "my_model", -- Optional
     mesh = "Hello world!",
-    textures = "Hello world!",
+    textures = {"texture.png", ...},
     rotation_x = 3, -- Optional
     rotation_y = 4, -- Optional
     continuous = false, -- Optional
@@ -275,8 +275,36 @@ gui.Table {
     w = 1, -- Optional
     h = 2, -- Optional
     name = "my_table", -- Optional
-    cells = "Hello world!",
+    cells = {"Hello world!", ...},
     selected_idx = 3,
+}
+```
+
+### `gui.TableColumns`
+
+Equivalent to Minetest's `tablecolumns[]` element.
+
+**Example**
+```lua
+gui.TableColumns {
+    tablecolumns = {
+        {
+            type = "text",
+            opts = {field = "value"},
+        },
+        ...
+    }
+}
+```
+
+### `gui.TableOptions`
+
+Equivalent to Minetest's `tableoptions[]` element.
+
+**Example**
+```lua
+gui.TableOptions {
+    opts = {field = "value"},
 }
 ```
 
@@ -305,7 +333,7 @@ gui.Textlist {
     w = 1, -- Optional
     h = 2, -- Optional
     name = "my_textlist", -- Optional
-    listelems = "Hello world!",
+    listelems = {"Hello world!", ...},
     selected_idx = 3, -- Optional
     transparent = false, -- Optional
 }
@@ -321,7 +349,7 @@ gui.Tooltip {
     tooltip_text = "Hello world!",
     bgcolor = "#FF0000", -- Optional
     fontcolor = "#FF0000", -- Optional
-    gui_element_name = "Hello world!",
+    gui_element_name = "my_button",
 }
 ```
 
