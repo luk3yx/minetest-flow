@@ -46,6 +46,10 @@ local function stub_player(name)
             return formspec
         end
     end
+    function minetest.get_player_by_name(name)
+        assert(name == "test_player")
+        return self
+    end
     return self
 end
 
@@ -67,6 +71,16 @@ string.split = string.split or function(str, chr)
     end
     r[#r + 1] = str:sub(i)
     return r
+end
+
+function minetest.explode_textlist_event(event)
+    local event_type, number = event:match("^([A-Z]+):(%d+)$")
+    return {type = event_type, index = tonumber(number) or 0}
+end
+
+function minetest.explode_table_event(event)
+    local event_type, row, column = event:match("^([A-Z]+):(%d+):(%d+)$")
+    return {type = event_type, row = tonumber(row) or 0, column = tonumber(column) or 0}
 end
 
 -- Load flow
@@ -100,6 +114,14 @@ local function test_render(build_func, output)
     local expected_tree = assert(formspec_ast.parse(output))
 
     assert.same(normalise_tree(expected_tree), normalise_tree(tree))
+end
+
+local function render_to_string(tree)
+    local player = stub_player("test_player")
+    local form = flow.make_gui(function() return table.copy(tree) end)
+    local ctx = {}
+    local _, event = form:render_to_formspec_string(player, ctx)
+    return ctx, event
 end
 
 describe("Flow", function()
@@ -427,10 +449,6 @@ describe("Flow", function()
                 return gui.Button(buttonargs)
             end)
             local player = stub_player("test_player")
-            function minetest.get_player_by_name(name)
-                assert(name == "test_player")
-                return player
-            end
             local ctx = {a = 1}
             local _, trigger_event = form:render_to_formspec_string(player, ctx, true)
 
@@ -482,6 +500,208 @@ describe("Flow", function()
             w, h = naive_str_width("\27(c@blue)Test\27(c@#ffffff)\n123")
             assert.equals(w, 4)
             assert.equals(h, 2)
+        end)
+    end)
+
+    describe("field validation for", function()
+        describe("Field", function()
+            it("passes correct input through", function()
+                local ctx, event = render_to_string(gui.Field{
+                    name = "a", default = "(default)"
+                })
+                assert.equals(ctx.form.a, "(default)")
+                event({a = "Hello world!"})
+                assert.equals(ctx.form.a, "Hello world!")
+            end)
+
+            it("strips escape characters", function()
+                local ctx, event = render_to_string(gui.Field{name = "a"})
+                assert.equals(ctx.form.a, "")
+                event({a = "\1\2Hello \3\4world!\n"})
+                assert.equals(ctx.form.a, "Hello world!")
+            end)
+
+            it("ignores other fields", function()
+                local ctx, event = render_to_string(gui.Field{name = "a"})
+                assert.equals(ctx.form.a, "")
+                event({b = "Hello world!"})
+                assert.equals(ctx.form.a, "")
+            end)
+        end)
+
+        describe("Textarea", function()
+            it("strips escape characters", function()
+                local ctx, event = render_to_string(gui.Textarea{name = "a"})
+                assert.equals(ctx.form.a, "")
+                event({a = "\1\2Hello \3\4world!\n"})
+                assert.equals(ctx.form.a, "Hello world!\n")
+            end)
+        end)
+
+        describe("Checkbox", function()
+            it("converts the result to a boolean", function()
+                local ctx, event = render_to_string(gui.Checkbox{name = "a"})
+                assert.equals(ctx.form.a, false)
+                event({a = "true"})
+                assert.equals(ctx.form.a, true)
+            end)
+        end)
+
+        describe("Dropdown", function()
+            describe("{index_event=false}", function()
+                it("passes correct input through", function()
+                    local ctx, event = render_to_string(gui.Dropdown{
+                        name = "a", items = {"hello", "world"},
+                    })
+                    assert.equals(ctx.form.a, "hello")
+                    event({a = "world"})
+                    assert.equals(ctx.form.a, "world")
+                end)
+
+                it("ignores malicious input", function()
+                    local ctx, event = render_to_string(gui.Dropdown{
+                        name = "a", items = {"hello", "world"},
+                    })
+                    assert.equals(ctx.form.a, "hello")
+                    event({a = "there"})
+                    assert.equals(ctx.form.a, "hello")
+                end)
+            end)
+
+            describe("{index_event=true}", function()
+                it("passes correct input through", function()
+                    local ctx, event = render_to_string(gui.Dropdown{
+                        name = "a", items = {"hello", "world"},
+                        index_event = true,
+                    })
+                    assert.equals(ctx.form.a, 1)
+                    event({a = "2"})
+                    assert.equals(ctx.form.a, 2)
+                end)
+
+                it("ignores malicious input", function()
+                    local ctx, event = render_to_string(gui.Dropdown{
+                        name = "a", items = {"hello", "world"},
+                        index_event = true,
+                    })
+                    assert.equals(ctx.form.a, 1)
+                    event({a = "nan"})
+                    assert.equals(ctx.form.a, 1)
+                end)
+
+                it("converts numbers to integers", function()
+                    local ctx, event = render_to_string(gui.Dropdown{
+                        name = "a", items = {"hello", "world"},
+                        index_event = true,
+                    })
+                    assert.equals(ctx.form.a, 1)
+                    event({a = "2.1"})
+                    assert.equals(ctx.form.a, 2)
+                end)
+
+                it("ignores out of bounds input", function()
+                    local ctx, event = render_to_string(gui.Dropdown{
+                        name = "a", items = {"hello", "world"},
+                        index_event = true,
+                    })
+                    assert.equals(ctx.form.a, 1)
+                    event({a = "3"})
+                    assert.equals(ctx.form.a, 1)
+                end)
+            end)
+        end)
+
+        describe("Textlist", function()
+            it("converts the result to a number", function()
+                local ctx, event = render_to_string(gui.Textlist{
+                    name = "a", listelems = {"hello", "world"},
+                    selected_idx = 2
+                })
+                assert.equals(ctx.form.a, 2)
+                event({a = "CHG:1"})
+                assert.equals(ctx.form.a, 1)
+            end)
+
+            it("ignores out of bounds values", function()
+                local ctx, event = render_to_string(gui.Textlist{
+                    name = "a", listelems = {"hello", "world"},
+                    selected_idx = 2
+                })
+                assert.equals(ctx.form.a, 2)
+                event({a = "CHG:3"})
+                assert.equals(ctx.form.a, 2)
+            end)
+        end)
+
+        describe("Table", function()
+            it("converts the result to a number", function()
+                local ctx, event = render_to_string(gui.Table{
+                    name = "a", cells = {"hello", "world"},
+                    selected_idx = 2
+                })
+                assert.equals(ctx.form.a, 2)
+                event({a = "CHG:1:0"})
+                assert.equals(ctx.form.a, 1)
+            end)
+
+            it("ignores out of bounds values", function()
+                local ctx, event = render_to_string(gui.Table{
+                    name = "a", cells = {"hello", "world"}
+                })
+                assert.equals(ctx.form.a, 1)
+                event({a = "CHG:3:0"})
+                assert.equals(ctx.form.a, 1)
+            end)
+
+            it("does not replace zero values", function()
+                local ctx, event = render_to_string(gui.Table{
+                    name = "a", cells = {"hello", "world"}, selected_idx = 0
+                })
+                assert.equals(ctx.form.a, 0)
+                event({a = "INV"})
+                assert.equals(ctx.form.a, 0)
+            end)
+
+            it("understands tablecolumns", function()
+                local ctx, event = render_to_string(gui.VBox{
+                    gui.TableColumns{
+                        tablecolumns = {
+                            {type = "text", opts = {}},
+                            {type = "text", opts = {}},
+                        }
+                    },
+                    gui.Table{
+                        name = "a", cells = {"1", "2", "3", "4", "5", "6"},
+                    }
+                })
+                assert.equals(ctx.form.a, 1)
+                event({a = "CHG:3:0"})
+                assert.equals(ctx.form.a, 3)
+            end)
+
+            it("ignores out-of-bounds values with tablecolumns", function()
+                local ctx, event = render_to_string(gui.VBox{
+                    gui.TableColumns{
+                        tablecolumns = {
+                            {type = "text", opts = {}},
+                            {type = "text", opts = {}},
+                        }
+                    },
+                    gui.Table{
+                        name = "a", cells = {"1", "2", "3", "4", "5", "6"},
+                    }
+                })
+                assert.equals(ctx.form.a, 1)
+                event({a = "CHG:4:0"})
+                assert.equals(ctx.form.a, 1)
+            end)
+        end)
+
+        it("does not save form input for Button", function()
+            local ctx, event = render_to_string(gui.Button{name = "a"})
+            assert.equals(ctx.form.a, nil)
+            event({a = "test"})
+            assert.equals(ctx.form.a, nil)
         end)
     end)
 end)

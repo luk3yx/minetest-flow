@@ -23,7 +23,7 @@ local S = minetest.get_translator("flow")
 
 local Form = {}
 
-local min, max = math.min, math.max
+local ceil, floor, min, max = math.ceil, math.floor, math.min, math.max
 
 -- Estimates the width of a valid UTF-8 string, ignoring any escape sequences.
 -- This function hopefully works with most (but not all) scripts, maybe it
@@ -606,33 +606,83 @@ local function chain_cb(f1, f2)
     end
 end
 
-local function safe_tonumber(str)
-    local num = tonumber(str)
-    if num and num == num and num >= 0 then
-        return num
+local function range_check_transformer(items_length)
+    return function(value)
+        local num = tonumber(value)
+        if num and num == num then
+            num = floor(num)
+            if num >= 1 and num <= items_length then
+                return num
+            end
+        end
     end
-    return 0
 end
 
+local function simple_transformer(func)
+    return function() return func end
+end
+
+-- Functions that transform field values into the easiest to use type
 local C1_CHARS = "\194[\128-\159]"
 local field_value_transformers = {
-    field = function(value)
+    field = simple_transformer(function(value)
         -- Remove control characters and newlines
         return value:gsub("[%z\1-\8\10-\31\127]", ""):gsub(C1_CHARS, "")
-    end,
-    tabheader = safe_tonumber,
-    dropdown = safe_tonumber,
-    checkbox = minetest.is_yes,
-    table = function(value)
-        return minetest.explode_table_event(value).row
-    end,
-    textlist = function(value)
-        return minetest.explode_textlist_event(value).index
-    end,
-    scrollbar = function(value)
+    end),
+    checkbox = simple_transformer(minetest.is_yes),
+
+    -- Scrollbars do have min/max values but scrollbars are only really used by
+    -- ScrollableVBox which doesn't need the extra checks
+    scrollbar = simple_transformer(function(value)
         return minetest.explode_scrollbar_event(value).value
-    end,
+    end),
 }
+
+-- Field value transformers that depend on some property of the element
+function field_value_transformers.tabheader(node)
+    return range_check_transformer(node.captions and #node.captions or 0)
+end
+
+function field_value_transformers.dropdown(node)
+    local items = node.items or {}
+    if node.index_event then
+        return range_check_transformer(#items)
+    end
+
+    -- Make sure that the value sent by the client is in the list of items
+    return function(value)
+        if table.indexof(items, value) > 0 then
+            return value
+        end
+    end
+end
+
+function field_value_transformers.table(node, tablecolumn_count)
+    -- Figure out how many rows the table has
+    local cells = node.cells and #node.cells or 0
+    local rows = ceil(cells / tablecolumn_count)
+
+    return function(value)
+        local row = floor(minetest.explode_table_event(value).row)
+        -- Tables and textlists can have values of 0 (nothing selected) but I
+        -- don't think the client can un-select a row so it should be safe to
+        -- ignore any 0 sent by the client to guarantee that the row will be
+        -- valid if the default value is valid
+        if row >= 1 and row <= rows then
+            return row
+        end
+    end
+end
+
+function field_value_transformers.textlist(node)
+    local rows = node.listelems and #node.listelems or 0
+    return function(value)
+        local index = floor(minetest.explode_textlist_event(value).index)
+        if index >= 1 and index <= rows then
+            return index
+        end
+    end
+end
 
 local function default_field_value_transformer(value)
     -- Remove control characters (but preserve newlines)
@@ -661,6 +711,7 @@ local function parse_callbacks(tree, ctx_form, auto_name_id,
         replace_backgrounds)
     local callbacks = {}
     local saved_fields = {}
+    local tablecolumn_count = 1
     for node in formspec_ast.walk(tree) do
         if node.type == "container" then
             if node.bgcolor then
@@ -689,6 +740,9 @@ local function parse_callbacks(tree, ctx_form, auto_name_id,
                 end
             end
             replace_backgrounds = replace_backgrounds or node._enable_bgimg_hack
+        elseif node.type == "tablecolumns" and node.tablecolumns then
+            -- Store the amount of columns for input validation
+            tablecolumn_count = max(#node.tablecolumns, 1)
         elseif replace_backgrounds then
             if (node.type == "background" or node.type == "background9") and
                     not node.auto_clip then
@@ -727,15 +781,6 @@ local function parse_callbacks(tree, ctx_form, auto_name_id,
                     end
 
                     node.selected_idx = node.selected_idx or 1
-
-                    -- Add a custom value transformer so that only values that
-                    -- were sent to the player are accepted
-                    saved_fields[node_name] = function(new_val)
-                        if table.indexof(items, new_val) > 0 then
-                            return new_val
-                        end
-                        return ctx_form[node_name]
-                    end
                 elseif value == nil then
                     -- If ctx.form[node_name] doesn't exist, then check whether
                     -- a default value is specified.
@@ -755,6 +800,11 @@ local function parse_callbacks(tree, ctx_form, auto_name_id,
                     -- Set the node's value to the one saved in ctx.form
                     node[value_field] = value
                 end
+
+                local get_transformer = field_value_transformers[node.type]
+                saved_fields[node_name] = get_transformer and
+                    get_transformer(node, tablecolumn_count) or
+                    default_field_value_transformer
             end
         end
 
@@ -1064,15 +1114,17 @@ function fs_process_events(player, form_info, fields)
                     " submitting a large field value (>60 kB), ignoring.")
             else
                 local new_value = transformer(raw_value)
-                if ctx_form[field] ~= new_value then
-                    if redraw_if_changed[field] then
-                        redraw_fs = true
-                    elseif form_info.formname == "" then
-                        -- Update the inventory when the player closes it next
-                        form_info.ctx_form_modified = true
+                if new_value ~= nil then
+                    if ctx_form[field] ~= new_value then
+                        if redraw_if_changed[field] then
+                            redraw_fs = true
+                        elseif form_info.formname == "" then
+                            -- Update the inventory when the player closes it
+                            form_info.ctx_form_modified = true
+                        end
                     end
+                    ctx_form[field] = new_value
                 end
-                ctx_form[field] = new_value
             end
         end
     end
