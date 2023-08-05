@@ -883,9 +883,7 @@ function Form:_render(player, ctx, formspec_version, id1, embedded, lang_code)
             used_ctx_vars[key] = true
             return orig_form[key]
         end,
-        __newindex = function(_, key, value)
-            orig_form[key] = value
-        end,
+        __newindex = orig_form,
     })
     ctx.form = wrapped_form
 
