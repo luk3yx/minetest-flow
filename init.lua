@@ -701,15 +701,20 @@ local default_value_fields = {
     tabheader = "current_tab",
 }
 
-
 local sensible_defaults = {
     default = "", selected = false, selected_idx = 1, value = 0,
+}
+
+local button_types = {
+    button = true, image_button = true, item_image_button = true,
+    button_exit = true, image_button_exit = true
 }
 
 -- Removes on_event from a formspec_ast tree and returns a callbacks table
 local function parse_callbacks(tree, ctx_form, auto_name_id,
         replace_backgrounds)
-    local callbacks = {}
+    local callbacks
+    local btn_callbacks = {}
     local saved_fields = {}
     local tablecolumn_count = 1
     for node in formspec_ast.walk(tree) do
@@ -810,13 +815,34 @@ local function parse_callbacks(tree, ctx_form, auto_name_id,
 
         -- Add the on_event callback (if any) to the callbacks table
         if node.on_event then
+            local is_btn = button_types[node.type]
             if not node_name then
                 node_name = ("\1%x"):format(auto_name_id)
                 node.name = node_name
                 auto_name_id = auto_name_id + 1
+            elseif btn_callbacks[node_name] or
+                    (is_btn and saved_fields[node_name]) or
+                    (callbacks and callbacks[node_name]) then
+                minetest.log("warning", ("[flow] Multiple callbacks have " ..
+                    "been registered for elements with the same name (%q), " ..
+                    "this will not work properly."):format(node_name))
+
+                -- Preserve previous behaviour
+                btn_callbacks[node_name] = nil
+                if callbacks then
+                    callbacks[node_name] = nil
+                end
+                is_btn = is_btn and not saved_fields[node_name]
             end
 
-            callbacks[node_name] = node.on_event
+            -- Put buttons into a separate callback table so that malicious
+            -- clients can't send multiple button presses in one submission
+            if is_btn then
+                btn_callbacks[node_name] = node.on_event
+            else
+                callbacks = callbacks or {}
+                callbacks[node_name] = node.on_event
+            end
             node.on_event = nil
         end
 
@@ -826,7 +852,7 @@ local function parse_callbacks(tree, ctx_form, auto_name_id,
             node._after_positioned = nil
         end
     end
-    return callbacks, saved_fields, auto_name_id
+    return callbacks, btn_callbacks, saved_fields, auto_name_id
 end
 
 local gui_mt = {
@@ -903,14 +929,15 @@ function Form:_render(player, ctx, formspec_version, id1, embedded, lang_code)
     if not id1 or id1 > 1e6 then id1 = 0 end
 
     local tree = render_ast(box, embedded)
-    local callbacks, saved_fields, id2 = parse_callbacks(tree, orig_form, id1,
-        embedded)
+    local callbacks, btn_callbacks, saved_fields, id2 = parse_callbacks(
+        tree, orig_form, id1, embedded
+    )
 
     local redraw_if_changed = {}
     for var in pairs(used_ctx_vars) do
         -- Only add it if there is no callback and the name exists in the
         -- formspec.
-        if saved_fields[var] and not callbacks[var] then
+        if saved_fields[var] and (not callbacks or not callbacks[var]) then
             redraw_if_changed[var] = true
         end
     end
@@ -920,6 +947,7 @@ function Form:_render(player, ctx, formspec_version, id1, embedded, lang_code)
     return tree, {
         self = self,
         callbacks = callbacks,
+        btn_callbacks = btn_callbacks,
         saved_fields = saved_fields,
         redraw_if_changed = redraw_if_changed,
         ctx = ctx,
@@ -1093,6 +1121,7 @@ end
 -- Declared locally above to be accessible to render_to_formspec_string
 function fs_process_events(player, form_info, fields)
     local callbacks = form_info.callbacks
+    local btn_callbacks = form_info.btn_callbacks
     local ctx = form_info.ctx
     local redraw_if_changed = form_info.redraw_if_changed
     local ctx_form = ctx.form
@@ -1128,9 +1157,26 @@ function fs_process_events(player, form_info, fields)
     end
 
     -- Run on_event callbacks
+    -- The callbacks table may be nil as adding callbacks to non-buttons is
+    -- likely uncommon (so allocating an empty table would be useless)
+    if callbacks then
+        for field in pairs(fields) do
+            if callbacks[field] and callbacks[field](player, ctx) then
+                redraw_fs = true
+            end
+        end
+    end
+
+    -- Run button callbacks after all other callbacks as that seems to be the
+    -- most intuitive thing to do
+    -- Note: Try not to rely on the order of on_event callbacks, I may change
+    -- it in the future.
     for field in pairs(fields) do
-        if callbacks[field] and callbacks[field](player, ctx) then
-            redraw_fs = true
+        if btn_callbacks[field] then
+            redraw_fs = btn_callbacks[field](player, ctx) or redraw_fs
+
+            -- Only run a single button callback
+            break
         end
     end
 

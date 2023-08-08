@@ -251,15 +251,18 @@ describe("Flow", function()
 
     it("registers callbacks", function()
         local function func() end
+        local function func2() return true end
 
         local tree, state = render(function(player, ctx)
             return gui.VBox{
                 gui.Label{label = "Callback demo:"},
                 gui.Button{label = "Click me!", name = "btn", on_event = func},
+                gui.Field{name = "field", on_event = func2}
             }
         end)
 
-        assert.same(state.callbacks, {btn = func})
+        assert.same(state.callbacks, {field = func2})
+        assert.same(state.btn_callbacks, {btn = func})
     end)
 
     it("handles visible = false", function()
@@ -697,11 +700,38 @@ describe("Flow", function()
             end)
         end)
 
-        it("does not save form input for Button", function()
-            local ctx, event = render_to_string(gui.Button{name = "a"})
-            assert.equals(ctx.form.a, nil)
-            event({a = "test"})
-            assert.equals(ctx.form.a, nil)
+        describe("Button", function()
+            it("does not save form input", function()
+                local ctx, event = render_to_string(gui.Button{name = "a"})
+                assert.equals(ctx.form.a, nil)
+                event({a = "test"})
+                assert.equals(ctx.form.a, nil)
+            end)
+
+            it("only calls a single callback", function()
+                local f, b = 0, 0
+
+                local ctx, event = render_to_string(gui.VBox{
+                    gui.Field{name = "a", on_event = function() f = f + 1 end},
+                    gui.Button{name = "b", on_event = function() b = b + 1 end},
+                    gui.Button{name = "c", on_event = function() b = b + 1 end}
+                })
+                event({})
+                assert.equals(f, 0)
+                assert.equals(b, 0)
+
+                event({a = "test", b = "test", c = "test"})
+                assert.equals(f, 1)
+                assert.equals(b, 1)
+
+                event({b = "test", c = "test"})
+                assert.equals(f, 1)
+                assert.equals(b, 2)
+
+                event({c = "test"})
+                assert.equals(f, 1)
+                assert.equals(b, 3)
+            end)
         end)
     end)
 end)
