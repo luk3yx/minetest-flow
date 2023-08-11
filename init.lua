@@ -736,7 +736,12 @@ local function parse_callbacks(tree, ctx_form, auto_name_id,
                     w = node.w + padding * 2, h = node.h + padding * 2,
                 })
             end
+
+            -- The on_quit callback is undocumented and not recommended, it
+            -- only gets called when the client tells the server that it's
+            -- closing the form and not when another form is shown.
             if node.on_quit then
+                callbacks = callbacks or {}
                 if callbacks.quit then
                     -- HACK
                     callbacks.quit = chain_cb(callbacks.quit, node.on_quit)
