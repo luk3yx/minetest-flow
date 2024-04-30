@@ -16,6 +16,10 @@ Vaguely inspired by Flutter and GTK.
  - Automatic layouting using `HBox` and `VBox` containers
  - Some elements have an automatic size.
  - The size of elements can optionally expand to fit larger spaces
+ - Elements which get their size based on their label length automatically become
+   larger/smaller to fit long translations[^label-size].
+
+[^label-size]: This isn't perfect, the actual size of labels depends on the client's font, DPI, window size, and formspec-related scaling settings.
 
 #### Other features
 
@@ -26,6 +30,7 @@ Vaguely inspired by Flutter and GTK.
    redrawing a form and are automatically applied.
  - Has an [inspector mod](https://content.minetest.net/packages/luk3yx/flow_inspector/)
    to help with developing and debugging forms.
+ - Some common security issues with formspec input handling are mitigated.
 
 ## Limitations
 
@@ -128,6 +133,13 @@ gui.Button{
     end,
 }
 ```
+
+### Security
+
+Flow ignores potentially malicious formspec input from clients, such as
+buttons or fields that haven't been shown to the client, out-of-bounds dropdown
+selections, and newlines in `Field` elements (where it's impossible to enter
+a newline without pasting it in).
 
 ## Other formspec libraries/utilities
 
