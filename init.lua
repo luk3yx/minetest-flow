@@ -338,6 +338,7 @@ function align_types.fill(node, x, w, extra_space)
             x = 0, y = 0,
             w = node.w + extra_space, h = node.h,
             name = "\1", label = node.label,
+            style = node.style,
         }
 
         -- Overlay button to prevent clicks from doing anything
@@ -352,6 +353,7 @@ function align_types.fill(node, x, w, extra_space)
 
         node.y = node.y - LABEL_OFFSET
         node.label = nil
+        node.style = nil
         node._label_hack = true
         assert(#node == 4)
     end
@@ -901,6 +903,104 @@ function flow.get_context()
     return current_ctx
 end
 
+local function insert_style_elem(tree, i, node, props, sels)
+    local base_selector = node.name or node.type
+    local selectors = {}
+    if sels then
+        for i, sel in ipairs(sels) do
+            local suffix = sel:match("^%s*$(.-)%s*$")
+            if suffix then
+                selectors[i] = base_selector .. ":" .. suffix
+            else
+                minetest.log("warning", "[flow] Invalid style selector: " ..
+                    tostring(sel))
+            end
+        end
+    else
+        selectors[1] = base_selector
+    end
+
+
+    table.insert(tree, i, {
+        type = node.name and "style" or "style_type",
+        selectors = selectors,
+        props = props,
+    })
+
+    if not node.name then
+        -- Undo style_type modifications
+        local reset_props = {}
+        for k in pairs(props) do
+            -- The style table might have substyles which haven't been removed
+            -- yet
+            reset_props[k] = ""
+        end
+
+        table.insert(tree, i + 2, {
+            type = "style_type",
+            selectors = selectors,
+            props = reset_props,
+        })
+    end
+end
+
+local function extract_props(t)
+    local res = {}
+    for k, v in pairs(t) do
+        if k ~= "sel" and type(k) == "string" then
+            res[k] = v
+        end
+    end
+    return res
+end
+
+-- I don't like the idea of making yet another pass over the element tree but I
+-- can't think of a clean way of integrating shorthand elements into one of the
+-- other loops.
+local function insert_shorthand_elements(tree)
+    for i = #tree, 1, -1 do
+        local node = tree[i]
+
+        -- Insert styles
+        if node.style then
+            local props = node.style
+            if #node.style > 0 then
+                -- Make a copy of node.style without the numeric keys. This
+                -- avoids modifying node.style in case it's used for multiple
+                -- elements.
+                props = extract_props(props)
+            end
+            insert_style_elem(tree, i, node, props)
+
+            for j, substyle in ipairs(node.style) do
+                insert_style_elem(tree, i + j, node, extract_props(substyle),
+                    substyle.sel:split(","))
+            end
+        end
+
+        -- Insert tooltips
+        if node.tooltip then
+            if node.name then
+                table.insert(tree, i, {
+                    type = "tooltip",
+                    gui_element_name = node.name,
+                    tooltip_text = node.tooltip,
+                })
+            else
+                local w, h = get_and_fill_in_sizes(node)
+                table.insert(tree, i, {
+                    type = "tooltip",
+                    x = node.x, y = node.y, w = w, h = h,
+                    tooltip_text = node.tooltip,
+                })
+            end
+        end
+
+        if node.type == "container" or node.type == "scroll_container" then
+            insert_shorthand_elements(node)
+        end
+    end
+end
 
 -- Renders a GUI into a formspec_ast tree and a table with callbacks.
 function Form:_render(player, ctx, formspec_version, id1, embedded, lang_code)
@@ -937,6 +1037,10 @@ function Form:_render(player, ctx, formspec_version, id1, embedded, lang_code)
     local callbacks, btn_callbacks, saved_fields, id2 = parse_callbacks(
         tree, orig_form, id1, embedded
     )
+
+    -- This should be after parse_callbacks so it can take advantage of
+    -- automatic field naming
+    insert_shorthand_elements(tree)
 
     local redraw_if_changed = {}
     for var in pairs(used_ctx_vars) do

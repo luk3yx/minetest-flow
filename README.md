@@ -377,7 +377,52 @@ it is 0.1.
 
 ## Styling forms
 
-To style forms, you use the `gui.Style` and `gui.StyleType` elements:
+### Experimental new syntax
+
+At the moment I suggest only using this syntax if your form won't look broken
+without the style - older versions of flow don't support this syntax, and I may
+make breaking changes to it (such as sub-style syntax) in the future.
+
+You can add inline styles to elements with the `style` field:
+
+```lua
+gui.Button{
+    label = "Test",
+    style = {
+        bgcolor = "red",
+
+        -- You can style specific states of elements:
+        {sel = "$hovered", bgcolor = "green"},
+
+        -- Or a combination of states:
+        {sel = "$hovered, $pressed", bgcolor = "blue"},
+        {sel = "$hovered+pressed", bgcolor = "white"},
+    },
+}
+```
+
+If you need to style multiple elements, you can reuse the `style` table:
+
+```lua
+local my_style = {bgcolor = "red", {sel = "$hovered", bgcolor = "green"}}
+
+local gui = flow.make_gui(function(player, ctx)
+    return gui.VBox{
+        gui.Button{label = "Styled button", style = my_style},
+        gui.Button{label = "Unstyled button"},
+        gui.Button{label = "Second styled button", style = my_style},
+    }
+end)
+```
+
+Note that this may inadvertently reset styles on subsequent elements if used on
+elements without a name due to formspec limitations.
+
+### Alternative more stable syntax
+
+Alternatively, you can use the `gui.Style` and `gui.StyleType` elements if you
+need to style a large group of elements or need to support older versions of
+flow:
 
 ```lua
 gui.Style{
@@ -394,15 +439,74 @@ gui.Button{
 },
 ```
 
-The style elements are invisible and won't affect padding.
+The `Style` and `StyleType` elements are invisible and won't affect padding.
 
-## Hiding elements
+## Other features
+
+<details>
+<summary><b>Tooltips</b></summary>
+
+You can add tooltips to elements using the `tooltip` field:
+
+```lua
+gui.Image{
+    w = 2, h = 2,
+    texture_name = "air.png",
+    tooltip = "Air",
+}
+```
+
+</details><details>
+<summary><b>Hiding elements</b></summary>
 
 Elements inside boxes can have `visible = false` set to hide them from the
 player. Elements hidden this way will still take up space like with
 `visibility: hidden;` in CSS.
 
-## Experimental features
+</details><details>
+<summary><b>Using a form as an inventory</b></summary>
+
+> [!TIP]
+> Consider using [Sway](https://content.minetest.net/packages/lazerbeak12345/sway/)
+> instead if you want to use flow as an inventory replacement while still
+> having some way for other mods to extend the inventory.
+
+A form can be set as the player inventory. Flow internally generates the
+formspec and passes it to `player:set_inventory_formspec()`. This will
+completely replace your inventory and isn't compatible with inventory mods like
+sfinv.
+
+```lua
+local example_inventory = flow.make_gui(function (player, context)
+    return gui.Label{ label = "Inventory goes here!" }
+end)
+minetest.register_on_joinplayer(function(player)
+    example_inventory:set_as_inventory_for(player)
+end)
+```
+
+Like with the `show_hud` function, `update*` functions don't do anything, so to
+update it, call `set_as_inventory_for` again with the new context. If the
+context is not provided, it will reuse the existing context.
+
+```lua
+example_inventory:set_as_inventory_for(player, new_context)
+```
+
+While the form will of course be cleared when the player leaves, if you'd like
+to unset the inventory manually, call `:unset_as_inventory_for(player)`,
+analogue to `close_hud`:
+
+```lua
+example_inventory:unset_as_inventory_for(player)
+```
+
+This will set the inventory formspec string to `""` and stop flow from
+processing inventory formspec input.
+
+</details>
+
+### Experimental features
 
 These features might be broken in the future.
 
@@ -439,42 +543,6 @@ You can set `bgcolor = "#123"`, `fbgcolor = "#123"`, and
 values for these correspond to the [`bgcolor` formspec element](https://minetest.gitlab.io/minetest/formspec/#bgcolorbgcolorfullscreenfbgcolor).
 
 </details><details>
-<summary><b>Using a form as an inventory</b></summary>
-
-A form can be set as the player inventory. Flow internally generates the
-formspec and passes it to `player:set_inventory_formspec()`. This will
-completely replace your inventory and isn't compatible with inventory mods like
-sfinv.
-
-```lua
-local example_inventory = flow.make_gui(function (player, context)
-    return gui.Label{ label = "Inventory goes here!" }
-end)
-minetest.register_on_joinplayer(function(player)
-    example_inventory:set_as_inventory_for(player)
-end)
-```
-
-Like with the `show_hud` function, `update*` functions don't do anything, so to
-update it, call `set_as_inventory_for` again with the new context. If the
-context is not provided, it will reuse the existing context.
-
-```lua
-example_inventory:set_as_inventory_for(player, new_context)
-```
-
-While the form will of course be cleared when the player leaves, if you'd like
-to unset the inventory manually, call `:unset_as_inventory_for(player)`,
-analogue to `close_hud`:
-
-```lua
-example_inventory:unset_as_inventory_for(player)
-```
-
-This will set the inventory formspec string to `""` and stop flow from
-processing inventory formspec input.
-
-</details><details>
 <summary><b>Rendering to a formspec</b></summary>
 
 This API should only be used when necessary and may have breaking changes in
@@ -495,6 +563,7 @@ call `form:render_to_formspec_string(player, ctx, standalone)`.
    even if fields.quit is sent.
 
 
-**Do not use this API with node meta formspecs, it can and will break!**
+> [!CAUTION]
+> Do not use this API with node meta formspecs, it can and will break!
 
 </details>

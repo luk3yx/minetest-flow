@@ -734,4 +734,136 @@ describe("Flow", function()
             end)
         end)
     end)
+
+    describe("inline style parser", function()
+        it("parses inline styles correctly", function()
+            test_render(gui.Box{
+                w = 1, h = 1, color = "blue",
+                style = {hello = "world"}
+            }, [[
+                size[1.6,1.6]
+                style_type[box;hello=world]
+                box[0.3,0.3;1,1;blue]
+                style_type[box;hello=]
+            ]])
+        end)
+
+        it("parses inline styles correctly", function()
+            test_render(gui.Button{
+                w = 1, h = 1, name = "mybtn",
+                style = {hello = "world"}
+            }, [[
+                size[1.6,1.6]
+                style[mybtn;hello=world]
+                button[0.3,0.3;1,1;mybtn;]
+            ]])
+        end)
+
+        it("takes advantage of auto-generated names", function()
+            test_render(gui.Button{
+                w = 1, h = 1, on_event = function() end,
+                style = {hello = "world"}
+            }, ([[
+                size[1.6,1.6]
+                style[\10;hello=world]
+                button[0.3,0.3;1,1;\10;]
+            ]]):gsub("\\1", "\1"))
+        end)
+
+        it("supports advanced selectors", function()
+            test_render(gui.Button{
+                w = 1, h = 1, name = "mybtn",
+                style = {
+                    bgimg = "btn.png",
+                    {sel = "$hovered", bgimg = "hover.png"},
+                    {sel = "$focused", bgimg = "focus.png"},
+                },
+            }, [[
+                size[1.6,1.6]
+                style[mybtn;bgimg=btn.png]
+                style[mybtn:hovered;bgimg=hover.png]
+                style[mybtn:focused;bgimg=focus.png]
+                button[0.3,0.3;1,1;mybtn;]
+            ]])
+        end)
+
+        it("supports advanced selectors on non-named nodes", function()
+            test_render(gui.Box{
+                w = 1, h = 1, color = "blue",
+                style = {
+                    bgimg = "btn.png",
+                    {sel = "$hovered", bgimg = "hover.png"},
+                    {sel = "$focused", bgimg = "focus.png"},
+                },
+            }, [[
+                size[1.6,1.6]
+                style_type[box;bgimg=btn.png]
+                style_type[box:hovered;bgimg=hover.png]
+                style_type[box:focused;bgimg=focus.png]
+                box[0.3,0.3;1,1;blue]
+                style_type[box:focused;bgimg=]
+                style_type[box:hovered;bgimg=]
+                style_type[box;bgimg=]
+            ]])
+        end)
+
+        it("supports multiple selectors", function()
+            test_render(gui.Button{
+                w = 1, h = 1, name = "mybtn",
+                style = {
+                    bgimg = "btn.png",
+                    {sel = "$hovered, $focused,$pressed", bgimg = "hover.png"},
+                },
+            }, [[
+                size[1.6,1.6]
+                style[mybtn;bgimg=btn.png]
+                style[mybtn:hovered,mybtn:focused,mybtn:pressed;bgimg=hover.png]
+                button[0.3,0.3;1,1;mybtn;]
+            ]])
+        end)
+
+        it("allows reuse of the same table", function()
+            local style = {
+                bgimg = "btn.png",
+                {sel = "$hovered", bgimg = "hover.png"},
+            }
+            test_render(gui.VBox{
+                gui.Button{w = 1, h = 1, name = "btn1", style = style},
+                gui.Button{w = 1, h = 1, name = "btn2", style = style},
+            }, [[
+                size[1.6,2.8]
+                style[btn1;bgimg=btn.png]
+                style[btn1:hovered;bgimg=hover.png]
+                button[0.3,0.3;1,1;btn1;]
+                style[btn2;bgimg=btn.png]
+                style[btn2:hovered;bgimg=hover.png]
+                button[0.3,1.5;1,1;btn2;]
+            ]])
+        end)
+    end)
+
+    describe("tooltip insertion", function()
+        it("works with named elements", function()
+            test_render(gui.Button{
+                w = 1, h = 1, name = "mybtn",
+                tooltip = "test",
+            }, [[
+                size[1.6,1.6]
+                tooltip[mybtn;test]
+                button[0.3,0.3;1,1;mybtn;]
+            ]])
+        end)
+
+        it("works with unnamed elements", function()
+            -- The tooltip[] added here takes the list spacing into account
+            test_render(gui.List{
+                w = 2, h = 2, padding = 1,
+                tooltip = "test"
+            }, [[
+                size[4.25,4.25]
+                tooltip[1,1;2.25,2.25;test]
+                list[;;1,1;2,2]
+            ]])
+        end)
+    end)
 end)
