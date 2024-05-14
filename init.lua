@@ -903,7 +903,7 @@ function flow.get_context()
     return current_ctx
 end
 
-local function insert_style_elem(tree, i, node, props, sels)
+local function insert_style_elem(tree, idx, node, props, sels)
     local base_selector = node.name or node.type
     local selectors = {}
     if sels then
@@ -921,7 +921,7 @@ local function insert_style_elem(tree, i, node, props, sels)
     end
 
 
-    table.insert(tree, i, {
+    table.insert(tree, idx, {
         type = node.name and "style" or "style_type",
         selectors = selectors,
         props = props,
@@ -936,7 +936,7 @@ local function insert_style_elem(tree, i, node, props, sels)
             reset_props[k] = ""
         end
 
-        table.insert(tree, i + 2, {
+        table.insert(tree, idx + 2, {
             type = "style_type",
             selectors = selectors,
             props = reset_props,
