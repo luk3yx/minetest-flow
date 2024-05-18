@@ -572,14 +572,6 @@ local function render_ast(node, embedded)
         node.bg_fullscreen = nil
     end
 
-    for field in formspec_ast.find(node, 'field') do
-        res[#res + 1] = {
-            type = 'field_close_on_enter',
-            name = field.name,
-            close_on_enter = false,
-        }
-    end
-
     -- Add the root element's background image as a fullscreen one
     if node.bgimg and not embedded then
         res[#res + 1] = {
@@ -998,6 +990,12 @@ local function insert_shorthand_elements(tree)
 
         if node.type == "container" or node.type == "scroll_container" then
             insert_shorthand_elements(node)
+        elseif node.type == "field" then
+            table.insert(tree, i, {
+                type = 'field_close_on_enter',
+                name = field.name,
+                close_on_enter = false,
+            })
         end
     end
 end
