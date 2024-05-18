@@ -993,7 +993,7 @@ local function insert_shorthand_elements(tree)
         elseif node.type == "field" then
             table.insert(tree, i, {
                 type = 'field_close_on_enter',
-                name = field.name,
+                name = node.name,
                 close_on_enter = false,
             })
         end

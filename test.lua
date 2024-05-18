@@ -338,11 +338,11 @@ describe("Flow", function()
             gui.Style{selectors = {"test"}, props = {prop = "value"}},
         }, ([[
             size[3.6,3.6]
-            field_close_on_enter[4;false]
-            field_close_on_enter[5;false]
             button[0.3,0.3;3,1;;1]
             image[0.3,0.3;3,3;2]
+            field_close_on_enter[4;false]
             field[0.3,0.7;3,2.6;4;Test;]
+            field_close_on_enter[5;false]
             field[0.3,0.3;3,3;5;;]
 
             style[\1;bgimg=;bgimg_pressed=]
