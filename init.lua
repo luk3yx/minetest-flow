@@ -1291,6 +1291,11 @@ function fs_process_events(player, form_info, fields)
         end
     end
 
+    -- special case for inventory
+    if form_info.formname == "" and form_info.ctx_form_modified then
+        redraw_fs = true
+    end
+
     return redraw_fs
 end
 
@@ -1305,11 +1310,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
     if form_infos[name] ~= form_info then return true end
 
     if fields.quit then
-        if formname ~= "" then
-            open_formspecs[name] = nil
-        elseif form_info.ctx_form_modified then -- special case for inventory
-            form_info.self:set_as_inventory_for(player)
-        end
+        open_formspecs[name] = nil
     elseif redraw_fs then
         update_form(form_info.self, player, form_info)
     end
