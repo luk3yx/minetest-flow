@@ -1198,8 +1198,12 @@ end
 -- This function may eventually call minetest.update_formspec if/when it gets
 -- added (https://github.com/minetest/minetest/issues/13142)
 local function update_form(self, player, form_info)
-    show_form(self, player, form_info.formname, form_info.ctx,
-        form_info.auto_name_id)
+    if form_info.formname == "" then
+        form_info.self:set_as_inventory_for(player)
+    else
+        show_form(self, player, form_info.formname, form_info.ctx,
+            form_info.auto_name_id)
+    end
 end
 
 function Form:update(player)
@@ -1300,13 +1304,12 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
 
     if form_infos[name] ~= form_info then return true end
 
-    if formname == "" then
-        -- Special case for inventory forms
-        if redraw_fs or (fields.quit and form_info.ctx_form_modified) then
+    if fields.quit then
+        if formname ~= "" then
+            open_formspecs[name] = nil
+        elseif form_info.ctx_form_modified then -- special case for inventory
             form_info.self:set_as_inventory_for(player)
         end
-    elseif fields.quit then
-        open_formspecs[name] = nil
     elseif redraw_fs then
         update_form(form_info.self, player, form_info)
     end
