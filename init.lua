@@ -1299,6 +1299,9 @@ function Form:embed(fields)
     --  fields) into the child form, but I'm not sure how that would look on the
     --  form definition side.
     --  Perhaps passing it in via the context, or an extra arg to _build?
+    if name == nil then
+        return self._build(player, flow.get_context())
+    end
     local prefix = "\2" .. name .. "\2"
     local old_get_context = flow.get_context
     local parent_ctx = old_get_context()
