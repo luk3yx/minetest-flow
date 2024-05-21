@@ -20,10 +20,17 @@ end
 
 local function dummy() end
 minetest.register_on_leaveplayer = dummy
-minetest.get_modpath = dummy
 minetest.is_singleplayer = dummy
 minetest.get_player_information = dummy
 minetest.show_formspec = dummy
+
+function minetest.get_modpath(modname)
+    if modname == "flow" then
+        return "."
+    elseif modname == "formspec_ast" then
+        return FORMSPEC_AST_PATH
+    end
+end
 
 function minetest.get_translator(modname)
     assert(modname == "flow")
