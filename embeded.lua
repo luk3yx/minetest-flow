@@ -84,7 +84,7 @@ return function(self, fields)
     local old_get_context = flow.get_context
     local parent_ctx = old_get_context()
     local child_ctx = embed_create_ctx(parent_ctx, name, prefix)
-    function flow.get_context () return child_ctx end
+    function flow.get_context() return child_ctx end
     local node = self._build(player, child_ctx)
     flow.get_context = old_get_context
 
