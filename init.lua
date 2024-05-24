@@ -1221,7 +1221,9 @@ function Form:update_where(func)
     end
 end
 
-Form.embed = dofile(modpath .. "/embeded.lua")
+Form.embed = dofile(modpath .. "/embeded.lua")(function (new_context)
+    current_ctx = new_context
+end)
 
 local form_mt = {__index = Form}
 function flow.make_gui(build_func)
