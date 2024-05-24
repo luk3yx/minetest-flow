@@ -17,17 +17,17 @@ end
 
 local function embed_create_ctx(ctx, name, prefix)
     if not ctx[name] then
-        -- Proxy ctx.form acess to the real form
-        -- We keep the metatable in memory so luaJIT can optimize indexes
-        ctx[name] = {
-            form = setmetatable(
-                {
-                    _flow_embed_prefix = prefix,
-                    _flow_embed_parent_form = ctx.form
-                },
-                embed_create_ctx_mt
-            )
-        }
+        ctx[name] = { form = setmetatable({}, embed_create_ctx_mt) }
+        return ctx[name]
+    end
+    if not ctx[name].form then
+        ctx[name].form = setmetatable({}, embed_create_ctx_mt)
+        return ctx[name]
+    end
+    if getmetatable(ctx[name].form) ~= embed_create_ctx_mt then
+        ctx[name].form._flow_embed_prefix = prefix
+        ctx[name].form._flow_embed_parent_form = ctx.form
+        ctx[name].form = setmetatable(ctx[name].form, embed_create_ctx_mt)
     end
     return ctx[name]
 end
