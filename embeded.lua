@@ -17,12 +17,10 @@ end
 
 local function embed_create_ctx(ctx, name, prefix)
     if not ctx[name] then
-        ctx[name] = { form = setmetatable({}, embed_create_ctx_mt) }
-        return ctx[name]
+        ctx[name] = {}
     end
     if not ctx[name].form then
-        ctx[name].form = setmetatable({}, embed_create_ctx_mt)
-        return ctx[name]
+        ctx[name].form = {}
     end
     if getmetatable(ctx[name].form) ~= embed_create_ctx_mt then
         ctx[name].form._flow_embed_prefix = prefix
