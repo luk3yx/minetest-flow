@@ -68,26 +68,26 @@ local function embed_add_prefix(node, name, prefix)
 end
 
 -- TODO: unit test this
-return function (change_ctx)
-    return function(self, fields)
-        local player = fields.player
-        local name = fields.name
-        -- TODO: it might be cool to somehow pass elements down (number-indexes
-        -- of fields) into the child form, but I'm not sure how that would look
-        -- on the form definition side.
-        -- Perhaps passing it in via the context, or an extra arg to _build?
-        if name == nil then
-            return self._build(player, flow.get_context())
-        end
-        local prefix = "\2" .. name .. "\2"
-        local old_get_context = flow.get_context
-        local parent_ctx = old_get_context()
-        local child_ctx = embed_create_ctx(parent_ctx, name, prefix)
-        change_ctx(child_ctx)
-        local node = self._build(player, child_ctx)
-        change_ctx(parent_ctx)
+local change_ctx = ...
 
-        embed_add_prefix(node, name, prefix)
-        return node
+return function(self, fields)
+    local player = fields.player
+    local name = fields.name
+    -- TODO: it might be cool to somehow pass elements down (number-indexes
+    -- of fields) into the child form, but I'm not sure how that would look
+    -- on the form definition side.
+    -- Perhaps passing it in via the context, or an extra arg to _build?
+    if name == nil then
+        return self._build(player, flow.get_context())
     end
+    local prefix = "\2" .. name .. "\2"
+    local old_get_context = flow.get_context
+    local parent_ctx = old_get_context()
+    local child_ctx = embed_create_ctx(parent_ctx, name, prefix)
+    change_ctx(child_ctx)
+    local node = self._build(player, child_ctx)
+    change_ctx(parent_ctx)
+
+    embed_add_prefix(node, name, prefix)
+    return node
 end
