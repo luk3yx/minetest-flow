@@ -873,4 +873,16 @@ describe("Flow", function()
             ]])
         end)
     end)
+
+    describe("Flow.embed", function ()
+        pending"supports nil prefix"
+        pending"returns a flow widget"
+        pending"child context object lives inside the host"
+        pending"returned flow widgets don't have layouts calculated yet"
+        -- Not sure about this one...
+        -- TODO: pending"child can't tell it's being rendered as a child"
+        pending"the host may modify the ctx object to message the victim"
+        pending"host may modify the returned flow form"
+        pending"passes events up and down correctly"
+    end)
 end)
