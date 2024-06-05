@@ -124,17 +124,16 @@ local function test_render(build_func, output)
 end
 
 local function render_from_func_to_string(func)
-    local player = stub_player("test_player")
-    local form = flow.make_gui(func)
-    local ctx = {}
-    local string, event = form:render_to_formspec_string(player, ctx)
-    return ctx, event, string
 end
 
 local function render_to_string(tree)
-    return render_from_func_to_string(function()
+    local player = stub_player("test_player")
+    local form = flow.make_gui(function()
         return table.copy(tree)
     end)
+    local ctx = {}
+    local _, event = form:render_to_formspec_string(player, ctx)
+    return ctx, event
 end
 
 describe("Flow", function()
@@ -884,22 +883,22 @@ describe("Flow", function()
         local embedded_form = flow.make_gui(function ()
             return gui.Label{label = "This is the embedded form!"}
         end)
+        pending"raises an error if called outside of a form context"
         test("supports nil prefix", function ()
-            local _e, _x, s = render_from_func_to_string(function (p, _x)
+            test_render(function (p, _x)
                 return gui.HBox{
                     gui.Label{label = "asdft"},
                     embedded_form:embed{ player = p },
-                    gui.Label{label = "ffaksksdf"},
+                    gui.Label{label = "ffaksksdf"}
                 }
-            end)
-            assert.equals(
-                "container[0.3,0.3]"..
-                "label[0,0.2;asdft]"..
-                "label[1.25,0.2;This is the embedded form!]"..
-                "label[6.91,0.2;ffaksksdf]"..
-                "container_end[]",
-                s
-            )
+            end, [[
+                size[9.4,1]
+                container[0.3,0.3]
+                label[0,0.2;asdft]
+                label[1.25,0.2;This is the embedded form!]
+                label[6.91,0.2;ffaksksdf]
+                container_end[]
+            ]])
         end)
         pending"returns a flow widget"
         pending"child context object lives inside the host"
