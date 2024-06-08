@@ -116,11 +116,15 @@ local function render(build_func, ctx, fs_ver)
     return form:_render({get_player_name = "test"}, ctx or {}, fs_ver)
 end
 
-local function test_render(build_func, output)
+local function test_render(build_func, output, description)
     local tree = render(build_func)
-    local expected_tree = assert(formspec_ast.parse(output))
+    local expected_tree = output
 
-    assert.same(normalise_tree(expected_tree), normalise_tree(tree))
+    if type(output) == "string" then
+        expected_tree = assert(formspec_ast.parse(output))
+    end
+
+    assert.same(normalise_tree(expected_tree), normalise_tree(tree), description)
 end
 
 local function render_from_func_to_string(func)
@@ -882,23 +886,24 @@ describe("Flow", function()
     describe("Flow.embed", function ()
         local embedded_form = flow.make_gui(function ()
             return gui.Label{label = "This is the embedded form!"}
+            --gui.VBox{
+                --gui.Field{name = "test2"},
+            --}
         end)
         pending"raises an error if called outside of a form context"
         test("supports nil prefix", function ()
-            test_render(function (p, _x)
+            test_render(function (p, _)
                 return gui.HBox{
                     gui.Label{label = "asdft"},
                     embedded_form:embed{ player = p },
                     gui.Label{label = "ffaksksdf"}
                 }
-            end, [[
-                size[9.4,1]
-                container[0.3,0.3]
-                label[0,0.2;asdft]
-                label[1.25,0.2;This is the embedded form!]
-                label[6.91,0.2;ffaksksdf]
-                container_end[]
-            ]])
+            end, {
+                gui.Size{w=9.4, h=1},
+                gui.Label{x=0.3, y=0.5, label = "asdft"},
+                gui.Label{x=1.55, y=0.5, label = "This is the embedded form!"},
+                gui.Label{x=7.21, y=0.5, label = "ffaksksdf"}
+            })
         end)
         pending"returns a flow widget"
         pending"child context object lives inside the host"
