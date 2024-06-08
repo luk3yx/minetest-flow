@@ -123,7 +123,10 @@ local function test_render(build_func, output, description)
     if type(output) == "string" then
         expected_tree = assert(formspec_ast.parse(output))
     end
-
+    if not (#expected_tree > 0 and type(expected_tree[1]) == "table" and expected_tree[1].type == "size") then
+        expected_tree = render(expected_tree)
+    end
+ 
     assert.same(normalise_tree(expected_tree), normalise_tree(tree), description)
 end
 
@@ -885,10 +888,10 @@ describe("Flow", function()
 
     describe("Flow.embed", function ()
         local embedded_form = flow.make_gui(function ()
-            return gui.Label{label = "This is the embedded form!"}
-            --gui.VBox{
-                --gui.Field{name = "test2"},
-            --}
+            return gui.VBox{
+                gui.Label{label = "This is the embedded form!"},
+                gui.Field{name = "test2"},
+            }
         end)
         pending"raises an error if called outside of a form context"
         test("supports nil prefix", function ()
@@ -898,11 +901,13 @@ describe("Flow", function()
                     embedded_form:embed{ player = p },
                     gui.Label{label = "ffaksksdf"}
                 }
-            end, {
-                gui.Size{w=9.4, h=1},
-                gui.Label{x=0.3, y=0.5, label = "asdft"},
-                gui.Label{x=1.55, y=0.5, label = "This is the embedded form!"},
-                gui.Label{x=7.21, y=0.5, label = "ffaksksdf"}
+            end, gui.HBox{
+                gui.Label{label = "asdft"},
+                gui.VBox{
+                    gui.Label{label = "This is the embedded form!"},
+                    gui.Field{name = "test2"},
+                },
+                gui.Label{label = "ffaksksdf"}
             })
         end)
         pending"returns a flow widget"
