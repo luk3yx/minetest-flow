@@ -894,6 +894,22 @@ describe("Flow", function()
             }
         end)
         pending"raises an error if called outside of a form context"
+        test("returns a flow widget", function ()
+            test_render(function (p, _)
+                return gui.HBox{
+                    gui.Label{label = "asdft"},
+                    embedded_form:embed{ player = p, prefix = "theprefix" },
+                    gui.Label{label = "ffaksksdf"}
+                }
+            end, gui.HBox{
+                gui.Label{label = "asdft"},
+                gui.VBox{
+                    gui.Label{label = "This is the embedded form!"},
+                    gui.Field{name = "\2theprefix\2test2"},
+                },
+                gui.Label{label = "ffaksksdf"}
+            })
+        end)
         test("supports nil prefix", function ()
             test_render(function (p, _)
                 return gui.HBox{
@@ -910,7 +926,6 @@ describe("Flow", function()
                 gui.Label{label = "ffaksksdf"}
             })
         end)
-        pending"returns a flow widget"
         pending"child context object lives inside the host"
         pending"returned flow widgets don't have layouts calculated yet"
         -- Not sure about this one...
