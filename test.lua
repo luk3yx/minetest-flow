@@ -898,7 +898,7 @@ describe("Flow", function()
             test_render(function (p, _)
                 return gui.HBox{
                     gui.Label{label = "asdft"},
-                    embedded_form:embed{ player = p, prefix = "theprefix" },
+                    embedded_form:embed{ player = p, name = "theprefix" },
                     gui.Label{label = "ffaksksdf"}
                 }
             end, gui.HBox{
