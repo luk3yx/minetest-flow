@@ -119,15 +119,16 @@ end
 local function test_render(build_func, output, description)
     local tree = render(build_func)
     local expected_tree = output
-
+    local remove_size = false
     if type(output) == "string" then
-        expected_tree = assert(formspec_ast.parse(output))
+        expected_tree = assert(formspec_ast.parse(output), "expected output must parse")
     end
-    if not (#expected_tree > 0 and type(expected_tree[1]) == "table" and expected_tree[1].type == "size") then
-        expected_tree = render(expected_tree)
+    if expected_tree.type then
+        expected_tree = assert(render(expected_tree), "if expected output is a flow form, it must render")
     end
- 
-    assert.same(normalise_tree(expected_tree), normalise_tree(tree), description)
+    tree = normalise_tree(tree)
+    expected_tree = normalise_tree(expected_tree)
+    assert.same(expected_tree, tree, description)
 end
 
 local function render_from_func_to_string(func)
@@ -887,10 +888,11 @@ describe("Flow", function()
     end)
 
     describe("Flow.embed", function ()
-        local embedded_form = flow.make_gui(function ()
+        local embedded_form = flow.make_gui(function (_p, x)
             return gui.VBox{
                 gui.Label{label = "This is the embedded form!"},
                 gui.Field{name = "test2"},
+                x.a and gui.Label{label = "A is true!" .. x.a} or gui.Nil{}
             }
         end)
         pending"raises an error if called outside of a form context"
@@ -926,7 +928,37 @@ describe("Flow", function()
                 gui.Label{label = "ffaksksdf"}
             })
         end)
-        pending"child context object lives inside the host"
+        it("child context object lives inside the host", function ()
+            test_render(function (p, x)
+                assert.Nil(
+                    x.theprefix,
+                    "Prefixes are inserted when :embed is called. "..
+                    "The first time this renders, it hasn't been called yet."
+                )
+                -- Technically, that means both of these will be true the first time
+                -- This code only ever runs once, so that's every time.
+                -- Regardless, this is how ordinary API users would be using it.
+                if not x.theprefix then
+                    x.theprefix = {}
+                end
+                if not x.theprefix.a then
+                    x.theprefix.a = " WOW!"
+                end
+                return gui.HBox{
+                    gui.Label{label = "asdft"},
+                    embedded_form:embed{ player = p, name = "theprefix" },
+                    gui.Label{label = "ffaksksdf"}
+                }
+            end, gui.HBox{
+                gui.Label{label = "asdft"},
+                gui.VBox{
+                    gui.Label{label = "This is the embedded form!"},
+                    gui.Field{name = "\2theprefix\2test2"},
+                    gui.Label{label = "A is true! WOW!"}
+                },
+                gui.Label{label = "ffaksksdf"}
+            })
+        end)
         pending"returned flow widgets don't have layouts calculated yet"
         -- Not sure about this one...
         -- TODO: pending"child can't tell it's being rendered as a child"
