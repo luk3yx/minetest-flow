@@ -959,7 +959,17 @@ describe("Flow", function()
                 gui.Label{label = "ffaksksdf"}
             })
         end)
-        pending"host may modify the returned flow form"
+        it("host may modify the returned flow form", function ()
+            test_render(function (p, _x)
+                local e = embedded_form:embed{ player = p, name = "asdf" }
+                e[#e+1] = gui.Box{ w = 1, h = 3 }
+                return e
+            end, gui.VBox{
+                gui.Label{label = "This is the embedded form!"},
+                gui.Field{name = "\2asdf\2test2"},
+                gui.Box{ w = 1, h = 3 }
+            })
+        end)
         pending"passes events up and down correctly"
     end)
 end)
