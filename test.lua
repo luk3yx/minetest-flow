@@ -959,10 +959,6 @@ describe("Flow", function()
                 gui.Label{label = "ffaksksdf"}
             })
         end)
-        pending"returned flow widgets don't have layouts calculated yet"
-        -- Not sure about this one...
-        -- TODO: pending"child can't tell it's being rendered as a child"
-        pending"the host may modify the ctx object to message the victim"
         pending"host may modify the returned flow form"
         pending"passes events up and down correctly"
     end)
