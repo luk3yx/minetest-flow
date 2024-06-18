@@ -370,7 +370,7 @@ describe("Flow", function()
 
     it("registers inventory formspecs", function ()
         local stupid_simple_inv_expected =
-            "formspec_version[6]" ..
+            "formspec_version[7]" ..
             "size[10.35,5.35]" ..
             "list[current_player;main;0.3,0.3;8,4]"
         local stupid_simple_inv = flow.make_gui(function (p, c)
@@ -388,7 +388,7 @@ describe("Flow", function()
     end)
 
     it("can still show a form when an inventory formspec is shown", function ()
-        local expected_one = "formspec_version[6]size[1.6,1.6]box[0.3,0.3;1,1;]"
+        local expected_one = "formspec_version[7]size[1.6,1.6]box[0.3,0.3;1,1;]"
         local one = flow.make_gui(function (p, c)
             return gui.Box{ w = 1, h = 1 }
         end)
@@ -732,6 +732,29 @@ describe("Flow", function()
                 assert.equals(f, 1)
                 assert.equals(b, 3)
             end)
+        end)
+    end)
+
+    describe("extra field parameters", function()
+        it("default to sensible values", function()
+            test_render(gui.Field{
+                w = 1, h = 1, name = "test",
+            }, [[
+                size[1.6,1.6]
+                field_close_on_enter[test;false]
+                field[0.3,0.3;1,1;test;;]
+            ]])
+        end)
+
+        it("can enable field_enter_after_edit", function()
+            test_render(gui.Field{
+                w = 1, h = 1, name = "test", enter_after_edit = true
+            }, [[
+                size[1.6,1.6]
+                field_enter_after_edit[test;true]
+                field_close_on_enter[test;false]
+                field[0.3,0.3;1,1;test;;]
+            ]])
         end)
     end)
 

@@ -12,9 +12,17 @@ gui.AnimatedImage {
     w = 1,
     h = 2,
     name = "my_animated_image", -- Optional
+
+    -- The image to use.
     texture_name = "texture.png",
+
+    -- The number of frames animating the image.
     frame_count = 3,
+
+    -- Milliseconds between each frame. `0` means the frames don't advance.
     frame_duration = 4,
+
+    -- The index of the frame to start on. Default `1`.
     frame_start = 5, -- Optional
     middle_x = 6, -- Optional
     middle_y = 7, -- Optional
@@ -105,6 +113,10 @@ gui.Field {
     name = "my_field", -- Optional
     label = "Hello world!",
     default = "Hello world!",
+
+    -- Makes changing the field submit it on mobile devices.
+    -- Requires a recent version of formspec_ast.
+    enter_after_edit = false, -- Optional
 }
 ```
 
@@ -225,6 +237,9 @@ gui.List {
     list_name = "Hello world!",
     w = 1,
     h = 2,
+
+    -- The index of the first (upper-left) item to draw.
+    -- Indices start at `0`. Default is `0`.
     starting_item_index = 3, -- Optional
 }
 ```
@@ -239,14 +254,24 @@ gui.Model {
     w = 1,
     h = 2,
     name = "my_model", -- Optional
+
+    -- The mesh model to use.
     mesh = "Hello world!",
+
+    -- The mesh textures to use according to the mesh materials.
     textures = {"texture.png", ...},
     rotation_x = 3, -- Optional
     rotation_y = 4, -- Optional
+
+    -- Whether the rotation is continuous. Default `false`.
     continuous = false, -- Optional
+
+    -- Whether the model can be controlled with the mouse. Default `true`.
     mouse_control = false, -- Optional
     frame_loop_begin = 5, -- Optional
     frame_loop_end = 6, -- Optional
+
+    -- Sets the animation speed. Default 0 FPS.
     animation_speed = 7, -- Optional
 }
 ```
@@ -276,6 +301,8 @@ gui.Table {
     h = 2, -- Optional
     name = "my_table", -- Optional
     cells = {"Hello world!", ...},
+
+    -- index of row to be selected within table (first row = `1`)
     selected_idx = 3,
 }
 ```

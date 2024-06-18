@@ -1,11 +1,12 @@
 from ruamel.yaml import YAML
-import collections, re, requests
+import collections, functools, re, requests
 yaml = YAML(typ='safe')
 
 
 hide_elements = {
     'background', 'background9', 'scroll_container', 'scrollbar', 'tabheader'
 }
+hide_comments = {'x', 'y', 'w', 'h', 'name', 'selected'}
 special_case_names = {'tablecolumns': 'TableColumns',
                       'tableoptions': 'TableOptions'}
 
@@ -16,7 +17,21 @@ def fetch_elements():
     return yaml.load(res.text)
 
 
-Field = collections.namedtuple('Field', 'name type is_list', defaults=(False,))
+@functools.cache
+def fetch_lua_api():
+    return requests.get('https://github.com/minetest/minetest/raw/'
+                        'master/doc/lua_api.md').text
+
+
+Field = collections.namedtuple('Field', 'name type is_list comment',
+                               defaults=(False, ''))
+special_case_types = {
+    'field': (
+        Field('enter_after_edit', 'boolean', False,
+              ('Makes changing the field submit it on mobile devices.\n'
+               'Requires a recent version of formspec_ast.')),
+    ),
+}
 
 
 def search_for_fields(obj, *, is_list=False):
@@ -40,6 +55,27 @@ def optional(element_name, field_name):
     return field_name == 'name'
 
 
+def get_comment(element_name, field):
+    if field.comment:
+        return field.comment
+
+    if field.name in hide_comments:
+        return
+
+    # Try and get something useful from lua_api.md
+    _, _, docs = fetch_lua_api().partition(f'\n### `{element_name}[')
+    doc_lines = docs.split('\n###', 1)[0].split('\n')
+    s = (f'*_`{field.name}`:_', f'*_`{field.name}`_(optional)')
+    for line in (it := iter(doc_lines)):
+        if line.lower().replace(' ', '_').startswith(s):
+            lines = [line.split(': ', 1)[-1]]
+            for line2 in it:
+                if not line2.startswith('  ') or 'comma' in line2:
+                    break
+                lines.append(line2.lstrip())
+            return '\n'.join(lines)
+
+
 def element_to_docs(element_name, variants):
     if element_name in special_case_names:
         flow_name = special_case_names[element_name]
@@ -52,6 +88,9 @@ def element_to_docs(element_name, variants):
             all(field.name in ('x', 'y') for field in fields)) and
             element_name not in special_case_names):
         return ''
+
+    if element_name in special_case_types:
+        fields.update(special_case_types[element_name])
 
     lines = [
         f'### `gui.{flow_name}`\n',
@@ -101,10 +140,16 @@ def element_to_docs(element_name, variants):
         if field.is_list and field.type != 'table':
             value = f'{{{value}, ...}}'
 
+        if comment := get_comment(element_name, field):
+            if lines and lines[-1].startswith(indent):
+                lines.append('')
+            for comment_line in comment.split('\n'):
+                lines.append(f'{indent}-- {comment_line}')
+
         line = f'{indent}{field.name} = {value},'
         if ((count < len(variants) or optional(element_name, field.name)) and
                 field.name != 'gui_element_name'):
-            line = line + ' -- Optional'
+            line += ' -- Optional'
         lines.append(line)
 
     if element_name == 'tablecolumns':
