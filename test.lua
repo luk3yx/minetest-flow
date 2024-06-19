@@ -959,6 +959,10 @@ describe("Flow", function()
                 gui.Label{label = "ffaksksdf"}
             })
         end)
+        describe("flow fields context table", function ()
+            pending"child may modify values"
+            pending"child may get values"
+        end)
         it("host may modify the returned flow form", function ()
             test_render(function (p, _x)
                 local e = embedded_form:embed{ player = p, name = "asdf" }
@@ -970,6 +974,14 @@ describe("Flow", function()
                 gui.Box{ w = 1, h = 3 }
             })
         end)
-        pending"passes events up and down correctly"
+        describe("events", function ()
+            pending"on_event handler called correctly"
+            pending"on_quit handler called correctly"
+        end)
+        describe("metadata", function ()
+            pending"style data is modified"
+            pending"scroll_container data is modified"
+            pending"tooltip data is modified"
+        end)
     end)
 end)
