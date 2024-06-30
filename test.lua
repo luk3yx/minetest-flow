@@ -368,6 +368,20 @@ describe("Flow", function()
         ]])
     end)
 
+    it("keeps gui.Listcolors invisible", function()
+        test_render(gui.VBox{
+            min_h = 5,
+            gui.Box{w = 1, h = 1, color = "red"},
+            gui.Listcolors{slot_bg_normal = "red", slot_bg_hover = "blue"},
+            gui.Box{w = 1, h = 1, color = "green"},
+        }, [[
+            size[1.6,5.6]
+            box[0.3,0.3;1,1;red]
+            listcolors[red;blue]
+            box[0.3,1.5;1,1;green]
+        ]])
+    end)
+
     it("registers inventory formspecs", function ()
         local stupid_simple_inv_expected =
             "formspec_version[7]" ..
