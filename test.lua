@@ -20,10 +20,17 @@ end
 
 local function dummy() end
 minetest.register_on_leaveplayer = dummy
-minetest.get_modpath = dummy
 minetest.is_singleplayer = dummy
 minetest.get_player_information = dummy
 minetest.show_formspec = dummy
+
+function minetest.get_modpath(modname)
+    if modname == "flow" then
+        return "."
+    elseif modname == "formspec_ast" then
+        return FORMSPEC_AST_PATH
+    end
+end
 
 function minetest.get_translator(modname)
     assert(modname == "flow")
@@ -109,16 +116,29 @@ local function render(build_func, ctx, fs_ver)
     return form:_render({get_player_name = "test"}, ctx or {}, fs_ver)
 end
 
-local function test_render(build_func, output)
+local function test_render(build_func, output, description)
     local tree = render(build_func)
-    local expected_tree = assert(formspec_ast.parse(output))
+    local expected_tree = output
+    local remove_size = false
+    if type(output) == "string" then
+        expected_tree = assert(formspec_ast.parse(output), "expected output must parse")
+    end
+    if expected_tree.type then
+        expected_tree = assert(render(expected_tree), "if expected output is a flow form, it must render")
+    end
+    tree = normalise_tree(tree)
+    expected_tree = normalise_tree(expected_tree)
+    assert.same(expected_tree, tree, description)
+end
 
-    assert.same(normalise_tree(expected_tree), normalise_tree(tree))
+local function render_from_func_to_string(func)
 end
 
 local function render_to_string(tree)
     local player = stub_player("test_player")
-    local form = flow.make_gui(function() return table.copy(tree) end)
+    local form = flow.make_gui(function()
+        return table.copy(tree)
+    end)
     local ctx = {}
     local _, event = form:render_to_formspec_string(player, ctx)
     return ctx, event
@@ -901,6 +921,104 @@ describe("Flow", function()
                 tooltip[1,1;2.25,2.25;test]
                 list[;;1,1;2,2]
             ]])
+        end)
+    end)
+
+    describe("Flow.embed", function ()
+        local embedded_form = flow.make_gui(function (_p, x)
+            return gui.VBox{
+                gui.Label{label = "This is the embedded form!"},
+                gui.Field{name = "test2"},
+                x.a and gui.Label{label = "A is true!" .. x.a} or gui.Nil{}
+            }
+        end)
+        pending"raises an error if called outside of a form context"
+        test("returns a flow widget", function ()
+            test_render(function (p, _)
+                return gui.HBox{
+                    gui.Label{label = "asdft"},
+                    embedded_form:embed{ player = p, name = "theprefix" },
+                    gui.Label{label = "ffaksksdf"}
+                }
+            end, gui.HBox{
+                gui.Label{label = "asdft"},
+                gui.VBox{
+                    gui.Label{label = "This is the embedded form!"},
+                    gui.Field{name = "\2theprefix\2test2"},
+                },
+                gui.Label{label = "ffaksksdf"}
+            })
+        end)
+        test("supports nil prefix", function ()
+            test_render(function (p, _)
+                return gui.HBox{
+                    gui.Label{label = "asdft"},
+                    embedded_form:embed{ player = p },
+                    gui.Label{label = "ffaksksdf"}
+                }
+            end, gui.HBox{
+                gui.Label{label = "asdft"},
+                gui.VBox{
+                    gui.Label{label = "This is the embedded form!"},
+                    gui.Field{name = "test2"},
+                },
+                gui.Label{label = "ffaksksdf"}
+            })
+        end)
+        it("child context object lives inside the host", function ()
+            test_render(function (p, x)
+                assert.Nil(
+                    x.theprefix,
+                    "Prefixes are inserted when :embed is called. "..
+                    "The first time this renders, it hasn't been called yet."
+                )
+                -- Technically, that means both of these will be true the first time
+                -- This code only ever runs once, so that's every time.
+                -- Regardless, this is how ordinary API users would be using it.
+                if not x.theprefix then
+                    x.theprefix = {}
+                end
+                if not x.theprefix.a then
+                    x.theprefix.a = " WOW!"
+                end
+                return gui.HBox{
+                    gui.Label{label = "asdft"},
+                    embedded_form:embed{ player = p, name = "theprefix" },
+                    gui.Label{label = "ffaksksdf"}
+                }
+            end, gui.HBox{
+                gui.Label{label = "asdft"},
+                gui.VBox{
+                    gui.Label{label = "This is the embedded form!"},
+                    gui.Field{name = "\2theprefix\2test2"},
+                    gui.Label{label = "A is true! WOW!"}
+                },
+                gui.Label{label = "ffaksksdf"}
+            })
+        end)
+        describe("flow fields context table", function ()
+            pending"child may modify values"
+            pending"child may get values"
+        end)
+        it("host may modify the returned flow form", function ()
+            test_render(function (p, _x)
+                local e = embedded_form:embed{ player = p, name = "asdf" }
+                e[#e+1] = gui.Box{ w = 1, h = 3 }
+                return e
+            end, gui.VBox{
+                gui.Label{label = "This is the embedded form!"},
+                gui.Field{name = "\2asdf\2test2"},
+                gui.Box{ w = 1, h = 3 }
+            })
+        end)
+        describe("events", function ()
+            pending"on_event handler called correctly"
+            pending"on_quit handler called correctly"
+        end)
+        describe("metadata", function ()
+            pending"style data is modified"
+            pending"scroll_container data is modified"
+            pending"tooltip data is modified"
         end)
     end)
 end)
