@@ -119,7 +119,6 @@ end
 local function test_render(build_func, output, description)
     local tree = render(build_func)
     local expected_tree = output
-    local remove_size = false
     if type(output) == "string" then
         expected_tree = assert(formspec_ast.parse(output), "expected output must parse")
     end
@@ -129,9 +128,6 @@ local function test_render(build_func, output, description)
     tree = normalise_tree(tree)
     expected_tree = normalise_tree(expected_tree)
     assert.same(expected_tree, tree, description)
-end
-
-local function render_from_func_to_string(func)
 end
 
 local function render_to_string(tree)
@@ -896,7 +892,7 @@ describe("Flow", function()
             }
         end)
         pending"raises an error if called outside of a form context"
-        test("returns a flow widget", function ()
+        it("returns a flow widget", function ()
             test_render(function (p, _)
                 return gui.HBox{
                     gui.Label{label = "asdft"},
@@ -912,7 +908,7 @@ describe("Flow", function()
                 gui.Label{label = "ffaksksdf"}
             })
         end)
-        test("supports nil prefix", function ()
+        it("supports nil prefix", function ()
             test_render(function (p, _)
                 return gui.HBox{
                     gui.Label{label = "asdft"},
