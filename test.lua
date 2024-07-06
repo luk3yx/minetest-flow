@@ -891,7 +891,15 @@ describe("Flow", function()
                 x.a and gui.Label{label = "A is true!" .. x.a} or gui.Nil{}
             }
         end)
-        pending"raises an error if called outside of a form context"
+        it("raises an error if called outside of a form context", function ()
+			assert.has_error(function ()
+                embedded_form:embed{
+                    -- It's fully possible that the API user would have access to a player reference
+                    player = stub_player"test_player",
+                    name = "theprefix"
+                }
+			end) -- TODO: for now it's just throwing the error when get_context is called. Is that fine?
+        end)
         it("returns a flow widget", function ()
             test_render(function (p, _)
                 return gui.HBox{

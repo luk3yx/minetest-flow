@@ -77,17 +77,16 @@ return function(self, fields)
     -- of fields) into the child form, but I'm not sure how that would look
     -- on the form definition side.
     -- Perhaps passing it in via the context, or an extra arg to _build?
+    local parent_ctx = flow.get_context()
     if name == nil then
-        return self._build(player, flow.get_context())
+        return self._build(player, parent_ctx)
     end
     local prefix = "\2" .. name .. "\2"
-    local old_get_context = flow.get_context
-    local parent_ctx = old_get_context()
     local child_ctx = embed_create_ctx(parent_ctx, name, prefix)
     change_ctx(child_ctx)
-    local node = self._build(player, child_ctx)
+    local root_node = self._build(player, child_ctx)
     change_ctx(parent_ctx)
 
-    embed_add_prefix(node, name, prefix)
-    return node
+    embed_add_prefix(root_node, name, prefix)
+    return root_node
 end
