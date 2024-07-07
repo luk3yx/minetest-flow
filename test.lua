@@ -963,9 +963,21 @@ describe("Flow", function()
                 gui.Label{label = "ffaksksdf"}
             })
         end)
-        describe("flow fields context table", function ()
-            pending"child may modify values"
-            pending"child may get values"
+        describe("flow form context table", function ()
+            test_render(function (p, x)
+                x.form["\2the_name\2jkl"] = 3
+                local child = flow.make_gui(function (_, xc)
+                    xc.form.thingy = true
+                    xc.form.jkl = 9
+                    return gui.Label{ label = "asdf" }
+                end):embed{
+                    player = p,
+                    name = "the_name"
+                }
+                assert.True(x.form["\2the_name\2thingy"])
+                assert.equal(9, x.form["\2the_name\2jkl"])
+                return child
+            end, gui.Label{ label = "asdf" })
         end)
         it("host may modify the returned flow form", function ()
             test_render(function (p, _x)
