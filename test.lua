@@ -963,7 +963,7 @@ describe("Flow", function()
                 gui.Label{label = "ffaksksdf"}
             })
         end)
-        describe("flow form context table", function ()
+        it("flow form context table", function ()
             test_render(function (p, x)
                 x.form["\2the_name\2jkl"] = 3
                 local child = flow.make_gui(function (_, xc)
