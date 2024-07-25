@@ -990,9 +990,51 @@ describe("Flow", function()
                 gui.Box{ w = 1, h = 3 }
             })
         end)
-        describe("events", function ()
-            pending"on_event handler called correctly"
-            pending"on_quit handler called correctly"
+        it("event handler called correctly", function ()
+            local function func_btn_event() end
+            local function func_field_event() return true end
+            local function func_quit() end
+
+            func_btn_event = spy.new(func_btn_event)
+            func_field_event = spy.new(func_field_event)
+            func_quit = spy.new(func_quit)
+
+            local wrapped_p, wrapped_x
+            local event_embedded_form = flow.make_gui(function (p, x)
+                wrapped_p, wrapped_x = p, x
+                return gui.VBox{
+                    on_quit = func_quit,
+                    gui.Label{label = "Callback demo:"},
+                    gui.Button{label = "Click me!", name = "btn", on_event = func_btn_event},
+                    gui.Field{name = "field", on_event = func_field_event}
+                }
+            end)
+
+            local _tree, state = render(function(player, _ctx)
+                return event_embedded_form:embed{
+                    player = player,
+                    name = "thesubform"
+                }
+            end)
+
+            local player, ctx = wrapped_p, state.ctx
+            state.callbacks.quit(player, ctx)
+            state.callbacks["\2thesubform\2field"](player, ctx)
+            state.btn_callbacks["\2thesubform\2btn"](player, ctx)
+
+            assert.same(state.ctx.thesubform, wrapped_x)
+
+            assert.spy(func_quit).was.called(1)
+            assert.spy(func_quit).was.called_with(player, wrapped_x)
+            assert.spy(func_field_event).was.called(1)
+            assert.spy(func_field_event).was.called_with(player, wrapped_x)
+            assert.spy(func_btn_event).was.called(1)
+            assert.spy(func_btn_event).was.called_with(player, wrapped_x)
+
+            -- Each of these are wrapped with another function to put the actual function in the correct environment
+            assert.Not.same(func_quit, state.callbacks.quit)
+            assert.Not.same(func_field_event, state.callbacks["\2thesubform\2field"])
+            assert.Not.same(func_btn_event, state.callbacks["\2thesubform\2btn"])
         end)
         describe("metadata", function ()
             pending"style data is modified"
