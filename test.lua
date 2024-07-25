@@ -1134,16 +1134,16 @@ describe("Flow", function()
         end)
         it("updates flow.get_context", function()
             local form = flow.make_gui(function()
-                assert.equals(flow.get_context().value, "inner")
+                assert.equals("inner", flow.get_context().value)
                 return gui.Label{label = "Hello"}
             end)
             test_render(function(p, ctx)
                 ctx.value = "outer"
-                ctx.inner = {value = "inner"}
+                ctx.test = {value = "inner"}
 
-                assert.equals(flow.get_context().value, "outer")
+                assert.equals("outer", flow.get_context().value)
                 local embedded = form:embed{player = p, name = "test"}
-                assert.equals(flow.get_context().value, "outer")
+                assert.equals("outer", flow.get_context().value)
                 return embedded
             end, gui.Label{label = "Hello"})
         end)
