@@ -1049,7 +1049,18 @@ describe("Flow", function()
                     gui.Style{selectors = {"\2asdf\2test"}, props = {prop = "value"}},
                 })
             end)
-            pending"scroll_container data is modified"
+            it("scroll_container data is modified", function ()
+                local scroll_embedded_form = flow.make_gui(function (p, x)
+                    return gui.VBox{
+                        gui.ScrollContainer{ scrollbar_name = "name", }
+                    }
+                end)
+                test_render(function (p, _x)
+                    return scroll_embedded_form:embed{ player = p, name = "asdf" }
+                end, gui.VBox{
+                    gui.ScrollContainer{ scrollbar_name = "\2asdf\2name" }
+                })
+            end)
             pending"tooltip data is modified"
         end)
     end)

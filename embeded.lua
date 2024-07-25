@@ -42,7 +42,7 @@ local function embed_add_prefix(node, name, prefix)
         for i, selector in ipairs(node.selectors) do
             node.selectors[i] = prefix .. selector
         end
-    elseif node.time == "scroll_container" and node.scrollbar_name then
+    elseif node.type == "scroll_container" and node.scrollbar_name then
         node.scrollbar_name = prefix .. node.scrollbar_name
     elseif node.type == "tooltip" and node.gui_element_name then
         node.gui_element_name = prefix .. node.gui_element_name
