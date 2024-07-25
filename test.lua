@@ -929,14 +929,14 @@ describe("Flow", function()
             }
         end)
         it("raises an error if called outside of a form context", function()
-			assert.has_error(function()
+            assert.has_error(function()
                 embedded_form:embed{
                     -- It's fully possible that the API user would have access
                     -- to a player reference
                     player = stub_player"test_player",
                     name = "theprefix"
                 }
-			end)
+            end)
         end)
         it("returns a flow widget", function ()
             test_render(function(p, _)
@@ -1131,6 +1131,21 @@ describe("Flow", function()
             end, gui.VBox{
                 gui.Field{name = "\2asdf\2field"}
             })
+        end)
+        it("updates flow.get_context", function()
+            local form = flow.make_gui(function()
+                assert.equals(flow.get_context().value, "inner")
+                return gui.Label{label = "Hello"}
+            end)
+            test_render(function(p, ctx)
+                ctx.value = "outer"
+                ctx.inner = {value = "inner"}
+
+                assert.equals(flow.get_context().value, "outer")
+                local embedded = form:embed{player = p, name = "test"}
+                assert.equals(flow.get_context().value, "outer")
+                return embedded
+            end, gui.Label{label = "Hello"})
         end)
     end)
 end)

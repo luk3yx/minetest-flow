@@ -65,16 +65,11 @@ local function embed_add_prefix(node, name, prefix)
     end
 end
 
--- TODO: Unit test this
 local change_ctx = ...
 
 return function(self, fields)
     local player = fields.player
     local name = fields.name
-    -- TODO: It might be cool to somehow pass elements down (number-indexes
-    -- of fields) into the child form, but I'm not sure how that would look
-    -- on the form definition side.
-    -- Perhaps passing it in via the context, or an extra arg to _build?
     local parent_ctx = flow.get_context()
     if name == nil then
         -- Don't prefix anything if name is unspecified
