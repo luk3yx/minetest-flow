@@ -1037,7 +1037,18 @@ describe("Flow", function()
             assert.Not.same(func_btn_event, state.callbacks["\2thesubform\2btn"])
         end)
         describe("metadata", function ()
-            pending"style data is modified"
+            it("style data is modified", function ()
+                local style_embedded_form = flow.make_gui(function (p, x)
+                    return gui.VBox{
+                        gui.Style{selectors = {"test"}, props = {prop = "value"}},
+                    }
+                end)
+                test_render(function (p, _x)
+                    return style_embedded_form:embed{ player = p, name = "asdf" }
+                end, gui.VBox{
+                    gui.Style{selectors = {"\2asdf\2test"}, props = {prop = "value"}},
+                })
+            end)
             pending"scroll_container data is modified"
             pending"tooltip data is modified"
         end)
