@@ -1230,7 +1230,7 @@ function Form:update_where(func)
     end
 end
 
-Form.embed = assert(loadfile(modpath .. "/embeded.lua"))(function(new_context)
+Form.embed = assert(loadfile(modpath .. "/embed.lua"))(function(new_context)
     current_ctx = new_context
 end)
 
