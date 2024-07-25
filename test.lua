@@ -1074,5 +1074,23 @@ describe("Flow", function()
                 })
             end)
         end)
+        it("supports fresh initial form values", function ()
+            local tooltip_embedded_form = flow.make_gui(function (p, x)
+                assert.same("initial value!", x.field)
+                return gui.VBox{
+                    gui.Field{name = "field"}
+                }
+            end)
+            test_render(function (p, x)
+                if not x.asdf then
+                    x.asdf = {
+                        field = "initial value!"
+                    }
+                end
+                return tooltip_embedded_form:embed{ player = p, name = "asdf" }
+            end, gui.VBox{
+                gui.Field{name = "\2asdf\2field"}
+            })
+        end)
     end)
 end)
