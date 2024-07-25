@@ -20,6 +20,7 @@
 local DEBUG_MODE = false
 flow = {}
 local S = minetest.get_translator("flow")
+local modpath = minetest.get_modpath("flow")
 
 local Form = {}
 
@@ -1229,6 +1230,10 @@ function Form:update_where(func)
     end
 end
 
+Form.embed = assert(loadfile(modpath .. "/embed.lua"))(function(new_context)
+    current_ctx = new_context
+end)
+
 local form_mt = {__index = Form}
 function flow.make_gui(build_func)
     return setmetatable({_build = build_func}, form_mt)
@@ -1509,7 +1514,6 @@ function gui_mt.__newindex()
     error("Cannot modifiy gui table")
 end
 
-local modpath = minetest.get_modpath("flow")
 if minetest.is_singleplayer() then
     local example_form
     minetest.register_chatcommand("flow-example", {
