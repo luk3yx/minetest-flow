@@ -231,6 +231,7 @@ end
 local invisible_elems = {
     style = true, listring = true, scrollbaroptions = true, tableoptions = true,
     tablecolumns = true, tooltip = true, style_type = true, set_focus = true,
+    listcolors = true
 }
 
 local DEFAULT_SPACING = 0.2
@@ -545,7 +546,7 @@ local function render_ast(node, embedded)
     expand(node)
     local t3 = DEBUG_MODE and minetest.get_us_time()
     local res = {
-        formspec_version = 6,
+        formspec_version = 7,
         {type = "size", w = w, h = h},
     }
 
@@ -997,6 +998,14 @@ local function insert_shorthand_elements(tree)
                 name = node.name,
                 close_on_enter = false,
             })
+
+            if node.enter_after_edit then
+                table.insert(tree, i, {
+                    type = 'field_enter_after_edit',
+                    name = node.name,
+                    enter_after_edit = true,
+                })
+            end
         end
     end
 end
