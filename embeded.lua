@@ -1,17 +1,15 @@
 local embed_create_ctx_mt = {}
 
 function embed_create_ctx_mt:__index(key)
-    -- rawget rensures we don't do recursion
-    --  and ensures it doesn't get wrongly prefixed
+    -- rawget ensures we don't do recursion
     local form = rawget(self, "_flow_embed_parent_form")
-    local prefix = rawget(self,"_flow_embed_prefix")
+    local prefix = rawget(self, "_flow_embed_prefix")
     return form[prefix .. key]
 end
 
 function embed_create_ctx_mt:__newindex(key, value)
-    -- rawget ensures it doesn't get wrongly prefixed
     local form = rawget(self, "_flow_embed_parent_form")
-    local prefix = rawget(self,"_flow_embed_prefix")
+    local prefix = rawget(self, "_flow_embed_prefix")
     form[prefix .. key] = value
 end
 
@@ -67,20 +65,22 @@ local function embed_add_prefix(node, name, prefix)
     end
 end
 
--- TODO: unit test this
+-- TODO: Unit test this
 local change_ctx = ...
 
 return function(self, fields)
     local player = fields.player
     local name = fields.name
-    -- TODO: it might be cool to somehow pass elements down (number-indexes
+    -- TODO: It might be cool to somehow pass elements down (number-indexes
     -- of fields) into the child form, but I'm not sure how that would look
     -- on the form definition side.
     -- Perhaps passing it in via the context, or an extra arg to _build?
     local parent_ctx = flow.get_context()
     if name == nil then
+        -- Don't prefix anything if name is unspecified
         return self._build(player, parent_ctx)
     end
+
     local prefix = "\2" .. name .. "\2"
     local child_ctx = embed_create_ctx(parent_ctx, name, prefix)
     change_ctx(child_ctx)

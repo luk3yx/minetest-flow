@@ -920,44 +920,47 @@ describe("Flow", function()
         end)
     end)
 
-    describe("Flow.embed", function ()
-        local embedded_form = flow.make_gui(function (_p, x)
+    describe("Flow.embed", function()
+        local embedded_form = flow.make_gui(function(_, x)
             return gui.VBox{
                 gui.Label{label = "This is the embedded form!"},
                 gui.Field{name = "test2"},
                 x.a and gui.Label{label = "A is true!" .. x.a} or gui.Nil{}
             }
         end)
-        it("raises an error if called outside of a form context", function ()
-			assert.has_error(function ()
+        it("raises an error if called outside of a form context", function()
+			assert.has_error(function()
                 embedded_form:embed{
-                    -- It's fully possible that the API user would have access to a player reference
+                    -- It's fully possible that the API user would have access
+                    -- to a player reference
                     player = stub_player"test_player",
                     name = "theprefix"
                 }
-			end) -- TODO: for now it's just throwing the error when get_context is called. Is that fine?
+			end)
         end)
         it("returns a flow widget", function ()
-            test_render(function (p, _)
+            test_render(function(p, _)
                 return gui.HBox{
                     gui.Label{label = "asdft"},
-                    embedded_form:embed{ player = p, name = "theprefix" },
+                    embedded_form:embed{player = p, name = "theprefix"},
                     gui.Label{label = "ffaksksdf"}
                 }
             end, gui.HBox{
                 gui.Label{label = "asdft"},
                 gui.VBox{
                     gui.Label{label = "This is the embedded form!"},
+                    -- The exact prefix is an implementation detail, you
+                    -- shouldn't rely on this in your own code
                     gui.Field{name = "\2theprefix\2test2"},
                 },
                 gui.Label{label = "ffaksksdf"}
             })
         end)
-        it("supports nil prefix", function ()
-            test_render(function (p, _)
+        it("supports nil prefix", function()
+            test_render(function(p, _)
                 return gui.HBox{
                     gui.Label{label = "asdft"},
-                    embedded_form:embed{ player = p },
+                    embedded_form:embed{player = p},
                     gui.Label{label = "ffaksksdf"}
                 }
             end, gui.HBox{
@@ -969,8 +972,8 @@ describe("Flow", function()
                 gui.Label{label = "ffaksksdf"}
             })
         end)
-        it("child context object lives inside the host", function ()
-            test_render(function (p, x)
+        it("child context object lives inside the host", function()
+            test_render(function(p, x)
                 assert.Nil(
                     x.theprefix,
                     "Prefixes are inserted when :embed is called. "..
@@ -987,7 +990,7 @@ describe("Flow", function()
                 end
                 return gui.HBox{
                     gui.Label{label = "asdft"},
-                    embedded_form:embed{ player = p, name = "theprefix" },
+                    embedded_form:embed{player = p, name = "theprefix"},
                     gui.Label{label = "ffaksksdf"}
                 }
             end, gui.HBox{
@@ -1000,13 +1003,13 @@ describe("Flow", function()
                 gui.Label{label = "ffaksksdf"}
             })
         end)
-        it("flow form context table", function ()
-            test_render(function (p, x)
+        it("flow form context table", function()
+            test_render(function(p, x)
                 x.form["\2the_name\2jkl"] = 3
-                local child = flow.make_gui(function (_, xc)
+                local child = flow.make_gui(function(_p, xc)
                     xc.form.thingy = true
                     xc.form.jkl = 9
-                    return gui.Label{ label = "asdf" }
+                    return gui.Label{label = "asdf"}
                 end):embed{
                     player = p,
                     name = "the_name"
@@ -1014,20 +1017,20 @@ describe("Flow", function()
                 assert.True(x.form["\2the_name\2thingy"])
                 assert.equal(9, x.form["\2the_name\2jkl"])
                 return child
-            end, gui.Label{ label = "asdf" })
+            end, gui.Label{label = "asdf"})
         end)
-        it("host may modify the returned flow form", function ()
-            test_render(function (p, _x)
-                local e = embedded_form:embed{ player = p, name = "asdf" }
-                e[#e+1] = gui.Box{ w = 1, h = 3 }
+        it("host may modify the returned flow form", function()
+            test_render(function(p, _x)
+                local e = embedded_form:embed{player = p, name = "asdf"}
+                e[#e+1] = gui.Box{w = 1, h = 3}
                 return e
             end, gui.VBox{
                 gui.Label{label = "This is the embedded form!"},
                 gui.Field{name = "\2asdf\2test2"},
-                gui.Box{ w = 1, h = 3 }
+                gui.Box{w = 1, h = 3}
             })
         end)
-        it("event handler called correctly", function ()
+        it("event handler called correctly", function()
             local function func_btn_event() end
             local function func_field_event() return true end
             local function func_quit() end
@@ -1037,7 +1040,7 @@ describe("Flow", function()
             func_quit = spy.new(func_quit)
 
             local wrapped_p, wrapped_x
-            local event_embedded_form = flow.make_gui(function (p, x)
+            local event_embedded_form = flow.make_gui(function(p, x)
                 wrapped_p, wrapped_x = p, x
                 return gui.VBox{
                     on_quit = func_quit,
@@ -1073,58 +1076,58 @@ describe("Flow", function()
             assert.Not.same(func_field_event, state.callbacks["\2thesubform\2field"])
             assert.Not.same(func_btn_event, state.callbacks["\2thesubform\2btn"])
         end)
-        describe("metadata", function ()
-            it("style data is modified", function ()
+        describe("metadata", function()
+            it("style data is modified", function()
                 local style_embedded_form = flow.make_gui(function (p, x)
                     return gui.VBox{
                         gui.Style{selectors = {"test"}, props = {prop = "value"}},
                     }
                 end)
-                test_render(function (p, _x)
-                    return style_embedded_form:embed{ player = p, name = "asdf" }
+                test_render(function(p, _x)
+                    return style_embedded_form:embed{player = p, name = "asdf"}
                 end, gui.VBox{
                     gui.Style{selectors = {"\2asdf\2test"}, props = {prop = "value"}},
                 })
             end)
-            it("scroll_container data is modified", function ()
-                local scroll_embedded_form = flow.make_gui(function (p, x)
+            it("scroll_container data is modified", function()
+                local scroll_embedded_form = flow.make_gui(function(p, x)
                     return gui.VBox{
-                        gui.ScrollContainer{ scrollbar_name = "name", }
+                        gui.ScrollContainer{scrollbar_name = "name"}
                     }
                 end)
-                test_render(function (p, _x)
-                    return scroll_embedded_form:embed{ player = p, name = "asdf" }
+                test_render(function(p, _x)
+                    return scroll_embedded_form:embed{player = p, name = "asdf"}
                 end, gui.VBox{
-                    gui.ScrollContainer{ scrollbar_name = "\2asdf\2name" }
+                    gui.ScrollContainer{scrollbar_name = "\2asdf\2name"}
                 })
             end)
-            it("tooltip data is modified", function ()
-                local tooltip_embedded_form = flow.make_gui(function (p, x)
+            it("tooltip data is modified", function()
+                local tooltip_embedded_form = flow.make_gui(function(p, x)
                     return gui.VBox{
-                        gui.Tooltip{ gui_element_name = "lololol" }
+                        gui.Tooltip{gui_element_name = "lololol"}
                     }
                 end)
-                test_render(function (p, _x)
-                    return tooltip_embedded_form:embed{ player = p, name = "asdf" }
+                test_render(function(p, _x)
+                    return tooltip_embedded_form:embed{player = p, name = "asdf"}
                 end, gui.VBox{
-                    gui.Tooltip{ gui_element_name = "\2asdf\2lololol" }
+                    gui.Tooltip{gui_element_name = "\2asdf\2lololol"}
                 })
             end)
         end)
-        it("supports fresh initial form values", function ()
-            local tooltip_embedded_form = flow.make_gui(function (p, x)
+        it("supports fresh initial form values", function()
+            local tooltip_embedded_form = flow.make_gui(function(p, x)
                 assert.same("initial value!", x.field)
                 return gui.VBox{
                     gui.Field{name = "field"}
                 }
             end)
-            test_render(function (p, x)
+            test_render(function(p, x)
                 if not x.asdf then
                     x.asdf = {
                         field = "initial value!"
                     }
                 end
-                return tooltip_embedded_form:embed{ player = p, name = "asdf" }
+                return tooltip_embedded_form:embed{player = p, name = "asdf"}
             end, gui.VBox{
                 gui.Field{name = "\2asdf\2field"}
             })
