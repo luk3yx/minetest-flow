@@ -1061,7 +1061,18 @@ describe("Flow", function()
                     gui.ScrollContainer{ scrollbar_name = "\2asdf\2name" }
                 })
             end)
-            pending"tooltip data is modified"
+            it("tooltip data is modified", function ()
+                local tooltip_embedded_form = flow.make_gui(function (p, x)
+                    return gui.VBox{
+                        gui.Tooltip{ gui_element_name = "lololol" }
+                    }
+                end)
+                test_render(function (p, _x)
+                    return tooltip_embedded_form:embed{ player = p, name = "asdf" }
+                end, gui.VBox{
+                    gui.Tooltip{ gui_element_name = "\2asdf\2lololol" }
+                })
+            end)
         end)
     end)
 end)
