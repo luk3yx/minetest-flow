@@ -2,30 +2,32 @@ local embed_create_ctx_mt = {}
 
 function embed_create_ctx_mt:__index(key)
     -- rawget ensures we don't do recursion
-    local form = rawget(self, "_flow_embed_parent_form")
+    local ctx = rawget(self, "_flow_embed_parent_ctx")
     local prefix = rawget(self, "_flow_embed_prefix")
-    return form[prefix .. key]
+    return ctx.form[prefix .. key]
 end
 
 function embed_create_ctx_mt:__newindex(key, value)
-    local form = rawget(self, "_flow_embed_parent_form")
+    local ctx = rawget(self, "_flow_embed_parent_ctx")
     local prefix = rawget(self, "_flow_embed_prefix")
-    form[prefix .. key] = value
+    ctx.form[prefix .. key] = value
 end
 
-local function embed_create_ctx(ctx, name, prefix)
-    if not ctx[name] then
-        ctx[name] = {}
+local function embed_create_ctx(parent_ctx, name, prefix)
+    if not parent_ctx[name] then
+        parent_ctx[name] = {}
     end
-    if not ctx[name].form then
-        ctx[name].form = {}
+    local new_ctx = parent_ctx[name]
+    if not new_ctx.form then
+        new_ctx.form = {}
     end
-    if getmetatable(ctx[name].form) ~= embed_create_ctx_mt then
-        ctx[name].form._flow_embed_prefix = prefix
-        ctx[name].form._flow_embed_parent_form = ctx.form
-        ctx[name].form = setmetatable(ctx[name].form, embed_create_ctx_mt)
+
+    if getmetatable(new_ctx.form) ~= embed_create_ctx_mt then
+        new_ctx.form._flow_embed_prefix = prefix
+        new_ctx.form._flow_embed_parent_ctx = parent_ctx
+        setmetatable(new_ctx.form, embed_create_ctx_mt)
     end
-    return ctx[name]
+    return new_ctx
 end
 
 local function embed_wrap_callback_func(func, name, prefix)

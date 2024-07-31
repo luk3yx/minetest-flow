@@ -566,4 +566,31 @@ call `form:render_to_formspec_string(player, ctx, standalone)`.
 > [!CAUTION]
 > Do not use this API with node meta formspecs, it can and will break!
 
+</details><details>
+<summary><b>Embedding a form into another form</b></summary>
+
+You can embed form objects inside others like this:
+
+```lua
+local parent_form = flow.make_gui(function(player, ctx)
+    return gui.VBox{
+        gui.Label{label = "Hello world"},
+        other_form:embed{
+            -- Passing in the player is required for now. You must use the same
+            -- player object that you get sent by flow to avoid breakages in
+            -- the future if this becomes optional.
+            player = player,
+
+            -- A name for the embed. If this is specified, the embedded form
+            -- will get its own context (accessible at ctx.my_embed_name) and
+            -- field names will be rewritten to avoid conflicts with the
+            -- parent form. If name is not specified, the embedded form will
+            -- share ctx and ctx.form with the parent, and will not have field
+            -- names rewritten.
+            name = "my_embed_name",
+        },
+    }
+end)
+```
+
 </details>
