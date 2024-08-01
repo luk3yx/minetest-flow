@@ -1114,6 +1114,25 @@ describe("Flow", function()
                 })
             end)
         end)
+        it("supports missing initial form values", function()
+            local tooltip_embedded_form = flow.make_gui(function(_, x)
+                assert.same("table", type(x), "embed defines the table and passes it")
+                assert.is_nil(x.field, "there was nothing here to begin with")
+                x.field = "new value!"
+                return gui.VBox{
+                    gui.Field{name = "field"}
+                }
+            end)
+            test_render(function(p, x)
+                assert.is_nil(x.asdf, "Table isn't defined initially")
+                local subform = tooltip_embedded_form:embed{player = p, name = "asdf"}
+                assert.same("table", type(x.asdf), "embed defines the table and leaves it in the parent")
+                assert.same("new value!", x.asdf.field, "values that it set set are here")
+                return subform
+            end, gui.VBox{
+                gui.Field{name = "\2asdf\2field"}
+            })
+        end)
         it("supports fresh initial form values", function()
             local tooltip_embedded_form = flow.make_gui(function(p, x)
                 assert.same("initial value!", x.field)
