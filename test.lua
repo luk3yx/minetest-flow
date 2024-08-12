@@ -53,8 +53,8 @@ local function stub_player(name)
             return formspec
         end
     end
-    function minetest.get_player_by_name(name)
-        assert(name == "test_player")
+    function minetest.get_player_by_name(passed_in_name)
+        assert(name == passed_in_name)
         return self
     end
     return self
@@ -92,6 +92,10 @@ end
 
 function minetest.global_exists(var)
     return rawget(_G, var) ~= nil
+end
+
+function minetest.get_player_information(name)
+    return name == "fs6" and {formspec_version = 6} or nil
 end
 
 -- Load flow
@@ -134,14 +138,14 @@ local function test_render(build_func, output, description)
     assert.same(expected_tree, tree, description)
 end
 
-local function render_to_string(tree)
-    local player = stub_player("test_player")
+local function render_to_string(tree, pname)
+    local player = stub_player(pname or "test_player")
     local form = flow.make_gui(function()
         return table.copy(tree)
     end)
     local ctx = {}
-    local _, event = form:render_to_formspec_string(player, ctx)
-    return ctx, event
+    local fs, event = form:render_to_formspec_string(player, ctx)
+    return ctx, event, fs
 end
 
 describe("Flow", function()
@@ -587,9 +591,10 @@ describe("Flow", function()
         describe("Dropdown", function()
             describe("{index_event=false}", function()
                 it("passes correct input through", function()
-                    local ctx, event = render_to_string(gui.Dropdown{
+                    local ctx, event, fs = render_to_string(gui.Dropdown{
                         name = "a", items = {"hello", "world"},
                     })
+                    assert(fs:find("dropdown%[[^%]]-;true%]") == nil)
                     assert.equals(ctx.form.a, "hello")
                     event({a = "world"})
                     assert.equals(ctx.form.a, "world")
@@ -601,6 +606,25 @@ describe("Flow", function()
                     })
                     assert.equals(ctx.form.a, "hello")
                     event({a = "there"})
+                    assert.equals(ctx.form.a, "hello")
+                end)
+
+                it("uses index_event internally on new clients", function()
+                    local ctx, event, fs = render_to_string(gui.Dropdown{
+                        name = "a", items = {"hello", "world"},
+                    }, "fs6")
+                    assert(fs:find("dropdown%[[^%]]-;true%]") ~= nil)
+                    assert.equals(ctx.form.a, "hello")
+                    event({a = 2})
+                    assert.equals(ctx.form.a, "world")
+                end)
+
+                it("ignores malicious input on new clients", function()
+                    local ctx, event = render_to_string(gui.Dropdown{
+                        name = "a", items = {"hello", "world"},
+                    }, "fs6")
+                    assert.equals(ctx.form.a, "hello")
+                    event({a = "world"})
                     assert.equals(ctx.form.a, "hello")
                 end)
             end)
