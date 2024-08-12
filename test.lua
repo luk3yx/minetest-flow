@@ -615,7 +615,7 @@ describe("Flow", function()
                     }, "fs6")
                     assert(fs:find("dropdown%[[^%]]-;true%]") ~= nil)
                     assert.equals(ctx.form.a, "hello")
-                    event({a = 2})
+                    event({a = "2"})
                     assert.equals(ctx.form.a, "world")
                 end)
 
