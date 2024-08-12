@@ -81,12 +81,12 @@ string.split = string.split or function(str, chr)
 end
 
 function minetest.explode_textlist_event(event)
-    local event_type, number = event:match("^([A-Z]+):(%d+)$")
+    local event_type, number = event:match("^([A-Z]+):(%d+)#")
     return {type = event_type, index = tonumber(number) or 0}
 end
 
 function minetest.explode_table_event(event)
-    local event_type, row, column = event:match("^([A-Z]+):(%d+):(%d+)$")
+    local event_type, row, column = event:match("^([A-Z]+):(%d+):(%d+)#")
     return {type = event_type, row = tonumber(row) or 0, column = tonumber(column) or 0}
 end
 
@@ -352,7 +352,7 @@ describe("Flow", function()
 
             gui.List{inventory_location = "a", list_name = "b", w = 2, h = 2},
             gui.Style{selectors = {"test"}, props = {prop = "value"}},
-        }, ([[
+        }, [[
             size[3.6,3.6]
             button[0.3,0.3;3,1;;1]
             image[0.3,0.3;3,3;2]
@@ -361,14 +361,14 @@ describe("Flow", function()
             field_close_on_enter[5;false]
             field[0.3,0.3;3,3;5;;]
 
-            style[\1;bgimg=;bgimg_pressed=]
-            style[\1:hovered,\1:pressed;bgimg=]
-            image_button[0.3,1.6;3,0.4;blank.png;\1;Test;;false]
-            image_button[0.3,1.6;3,0.4;blank.png;\1;;;false]
+            style[_#;bgimg=;bgimg_pressed=]
+            style[_#:hovered,_#:pressed;bgimg=]
+            image_button[0.3,1.6;3,0.4;blank.png;_#;Test;;false]
+            image_button[0.3,1.6;3,0.4;blank.png;_#;;;false]
 
             list[a;b;0.675,0.675;2,2]
             style[test;prop=value]
-        ]]):gsub("\\1", "\1"))
+        ]])
     end)
 
     it("ignores gui.Nil", function()
@@ -816,11 +816,11 @@ describe("Flow", function()
             test_render(gui.Button{
                 w = 1, h = 1, on_event = function() end,
                 style = {hello = "world"}
-            }, ([[
+            }, [[
                 size[1.6,1.6]
-                style[\10;hello=world]
+                style[_#0;hello=world]
                 button[0.3,0.3;1,1;\10;]
-            ]]):gsub("\\1", "\1"))
+            ]])
         end)
 
         it("supports advanced selectors", function()
@@ -951,7 +951,7 @@ describe("Flow", function()
                     gui.Label{label = "This is the embedded form!"},
                     -- The exact prefix is an implementation detail, you
                     -- shouldn't rely on this in your own code
-                    gui.Field{name = "\2theprefix\2test2"},
+                    gui.Field{name = "_#theprefix#test2"},
                 },
                 gui.Label{label = "ffaksksdf"}
             })
@@ -997,7 +997,7 @@ describe("Flow", function()
                 gui.Label{label = "asdft"},
                 gui.VBox{
                     gui.Label{label = "This is the embedded form!"},
-                    gui.Field{name = "\2theprefix\2test2"},
+                    gui.Field{name = "_#theprefix#test2"},
                     gui.Label{label = "A is true! WOW!"}
                 },
                 gui.Label{label = "ffaksksdf"}
@@ -1005,7 +1005,7 @@ describe("Flow", function()
         end)
         it("flow form context table", function()
             test_render(function(p, x)
-                x.form["\2the_name\2jkl"] = 3
+                x.form["_#the_name#jkl"] = 3
                 local child = flow.make_gui(function(_p, xc)
                     xc.form.thingy = true
                     xc.form.jkl = 9
@@ -1014,8 +1014,8 @@ describe("Flow", function()
                     player = p,
                     name = "the_name"
                 }
-                assert.True(x.form["\2the_name\2thingy"])
-                assert.equal(9, x.form["\2the_name\2jkl"])
+                assert.True(x.form["_#the_name#thingy"])
+                assert.equal(9, x.form["_#the_name#jkl"])
                 return child
             end, gui.Label{label = "asdf"})
         end)
@@ -1026,7 +1026,7 @@ describe("Flow", function()
                 return e
             end, gui.VBox{
                 gui.Label{label = "This is the embedded form!"},
-                gui.Field{name = "\2asdf\2test2"},
+                gui.Field{name = "_#asdf#test2"},
                 gui.Box{w = 1, h = 3}
             })
         end)
@@ -1059,8 +1059,8 @@ describe("Flow", function()
 
             local player, ctx = wrapped_p, state.ctx
             state.callbacks.quit(player, ctx)
-            state.callbacks["\2thesubform\2field"](player, ctx)
-            state.btn_callbacks["\2thesubform\2btn"](player, ctx)
+            state.callbacks["_#thesubform#field"](player, ctx)
+            state.btn_callbacks["_#thesubform#btn"](player, ctx)
 
             assert.same(state.ctx.thesubform, wrapped_x)
 
@@ -1073,8 +1073,8 @@ describe("Flow", function()
 
             -- Each of these are wrapped with another function to put the actual function in the correct environment
             assert.Not.same(func_quit, state.callbacks.quit)
-            assert.Not.same(func_field_event, state.callbacks["\2thesubform\2field"])
-            assert.Not.same(func_btn_event, state.callbacks["\2thesubform\2btn"])
+            assert.Not.same(func_field_event, state.callbacks["_#thesubform#field"])
+            assert.Not.same(func_btn_event, state.callbacks["_#thesubform#btn"])
         end)
         describe("metadata", function()
             it("style data is modified", function()
@@ -1086,7 +1086,7 @@ describe("Flow", function()
                 test_render(function(p, _x)
                     return style_embedded_form:embed{player = p, name = "asdf"}
                 end, gui.VBox{
-                    gui.Style{selectors = {"\2asdf\2test"}, props = {prop = "value"}},
+                    gui.Style{selectors = {"_#asdf#test"}, props = {prop = "value"}},
                 })
             end)
             it("scroll_container data is modified", function()
@@ -1098,7 +1098,7 @@ describe("Flow", function()
                 test_render(function(p, _x)
                     return scroll_embedded_form:embed{player = p, name = "asdf"}
                 end, gui.VBox{
-                    gui.ScrollContainer{scrollbar_name = "\2asdf\2name"}
+                    gui.ScrollContainer{scrollbar_name = "_#asdf#name"}
                 })
             end)
             it("tooltip data is modified", function()
@@ -1110,7 +1110,7 @@ describe("Flow", function()
                 test_render(function(p, _x)
                     return tooltip_embedded_form:embed{player = p, name = "asdf"}
                 end, gui.VBox{
-                    gui.Tooltip{gui_element_name = "\2asdf\2lololol"}
+                    gui.Tooltip{gui_element_name = "_#asdf#lololol"}
                 })
             end)
         end)
@@ -1130,7 +1130,7 @@ describe("Flow", function()
                 assert.same("new value!", x.asdf.field, "values that it set set are here")
                 return subform
             end, gui.VBox{
-                gui.Field{name = "\2asdf\2field"}
+                gui.Field{name = "_#asdf#field"}
             })
         end)
         it("supports fresh initial form values", function()
@@ -1148,7 +1148,7 @@ describe("Flow", function()
                 end
                 return tooltip_embedded_form:embed{player = p, name = "asdf"}
             end, gui.VBox{
-                gui.Field{name = "\2asdf\2field"}
+                gui.Field{name = "_#asdf#field"}
             })
         end)
         it("updates flow.get_context", function()

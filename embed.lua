@@ -78,7 +78,7 @@ return function(self, fields)
         return self._build(player, parent_ctx)
     end
 
-    local prefix = "\2" .. name .. "\2"
+    local prefix = "_#" .. name .. "#"
     local child_ctx = embed_create_ctx(parent_ctx, name, prefix)
     change_ctx(child_ctx)
     local root_node = self._build(player, child_ctx)

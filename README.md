@@ -37,6 +37,8 @@ Vaguely inspired by Flutter and GTK.
  - This mod doesn't support all of the features that regular formspecs do.
  - [FS51](https://content.minetest.net/packages/luk3yx/fs51/) is required if
    you want to have full support for Minetest 5.3 and below.
+ - Make sure you're using the latest version of flow if you are on MT 5.10-dev
+   or later, older versions used a hack which no longer works.
 
 ## Basic example
 
@@ -592,5 +594,7 @@ local parent_form = flow.make_gui(function(player, ctx)
     }
 end)
 ```
+
+Special characters (excluding `-` and `_`) are not allowed in embed names.
 
 </details>

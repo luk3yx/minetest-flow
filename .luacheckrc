@@ -1,14 +1,15 @@
 max_line_length = 80
 
 globals = {
-    'formspec_ast',
-    'minetest',
-    'hud_fs',
     'flow',
-    'dump',
 }
 
 read_globals = {
+    'dump',
+    'formspec_ast',
+    'fs51',
+    'hud_fs',
+    'minetest',
     string = {fields = {'split', 'trim'}},
     table = {fields = {'copy', 'indexof'}}
 }

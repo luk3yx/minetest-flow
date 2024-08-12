@@ -317,7 +317,7 @@ function align_types.fill(node, x, w, extra_space)
         node[1] = {
             type = "style",
             -- MT 5.1.0 only supports one style selector
-            selectors = {"\1"},
+            selectors = {"_#"},
 
             -- bgimg_pressed is included for 5.1.0 support
             -- bgimg_hovered is unnecessary as it was added in 5.2.0 (which
@@ -329,7 +329,7 @@ function align_types.fill(node, x, w, extra_space)
         -- removed
         node[2] = {
             type = "style",
-            selectors = {"\1:hovered", "\1:pressed"},
+            selectors = {"_#:hovered", "_#:pressed"},
             props = {bgimg = ""},
         }
 
@@ -339,7 +339,7 @@ function align_types.fill(node, x, w, extra_space)
             drawborder = false,
             x = 0, y = 0,
             w = node.w + extra_space, h = node.h,
-            name = "\1", label = node.label,
+            name = "_#", label = node.label,
             style = node.style,
         }
 
@@ -350,7 +350,7 @@ function align_types.fill(node, x, w, extra_space)
             drawborder = false,
             x = 0, y = 0,
             w = node.w + extra_space, h = node.h,
-            name = "\1", label = "",
+            name = "_#", label = "",
         }
 
         node.y = node.y - LABEL_OFFSET
@@ -639,10 +639,30 @@ function field_value_transformers.tabheader(node)
     return range_check_transformer(node.captions and #node.captions or 0)
 end
 
-function field_value_transformers.dropdown(node)
+function field_value_transformers.dropdown(node, _, formspec_version)
     local items = node.items or {}
-    if node.index_event then
+    if node.index_event and not node._index_event_hack then
         return range_check_transformer(#items)
+    end
+
+    -- MT will start sanitising formspec fields on its own at some point
+    -- (https://github.com/minetest/minetest/pull/14878), however it may strip
+    -- escape sequences from dropdowns as well. Since we know what the actual
+    -- value of the dropdown is anyway, we can just enable index_event for new
+    -- clients and keep the same behaviour
+    if (formspec_version and formspec_version >= 4) or
+            (minetest.global_exists("fs51") and fs51.monkey_patching_enabled) then
+        node.index_event = true
+
+        -- Detect reuse of the same Dropdown element (this is unsupported and
+        -- will break in other ways)
+        node._index_event_hack = true
+
+        return function(value)
+            return items[tonumber(value)]
+        end
+    elseif node._index_event_hack then
+        node.index_event = nil
     end
 
     -- Make sure that the value sent by the client is in the list of items
@@ -708,7 +728,7 @@ local button_types = {
 
 -- Removes on_event from a formspec_ast tree and returns a callbacks table
 local function parse_callbacks(tree, ctx_form, auto_name_id,
-        replace_backgrounds)
+        replace_backgrounds, formspec_version)
     local callbacks
     local btn_callbacks = {}
     local saved_fields = {}
@@ -809,7 +829,8 @@ local function parse_callbacks(tree, ctx_form, auto_name_id,
 
                 local get_transformer = field_value_transformers[node.type]
                 saved_fields[node_name] = get_transformer and
-                    get_transformer(node, tablecolumn_count) or
+                    get_transformer(node, tablecolumn_count,
+                        formspec_version) or
                     default_field_value_transformer
             end
         end
@@ -818,7 +839,9 @@ local function parse_callbacks(tree, ctx_form, auto_name_id,
         if node.on_event then
             local is_btn = button_types[node.type]
             if not node_name then
-                node_name = ("\1%x"):format(auto_name_id)
+                -- Flow internal field names start with "_#" to avoid
+                -- conflicts with user-provided fields.
+                node_name = ("_#%x"):format(auto_name_id)
                 node.name = node_name
                 auto_name_id = auto_name_id + 1
             elseif btn_callbacks[node_name] or
@@ -1043,7 +1066,7 @@ function Form:_render(player, ctx, formspec_version, id1, embedded, lang_code)
 
     local tree = render_ast(box, embedded)
     local callbacks, btn_callbacks, saved_fields, id2 = parse_callbacks(
-        tree, orig_form, id1, embedded
+        tree, orig_form, id1, embedded, formspec_version
     )
 
     -- This should be after parse_callbacks so it can take advantage of
