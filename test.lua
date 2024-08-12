@@ -81,13 +81,17 @@ string.split = string.split or function(str, chr)
 end
 
 function minetest.explode_textlist_event(event)
-    local event_type, number = event:match("^([A-Z]+):(%d+)#")
+    local event_type, number = event:match("^([A-Z]+):(%d+)$")
     return {type = event_type, index = tonumber(number) or 0}
 end
 
 function minetest.explode_table_event(event)
-    local event_type, row, column = event:match("^([A-Z]+):(%d+):(%d+)#")
+    local event_type, row, column = event:match("^([A-Z]+):(%d+):(%d+)$")
     return {type = event_type, row = tonumber(row) or 0, column = tonumber(column) or 0}
+end
+
+function minetest.global_exists(var)
+    return rawget(_G, var) ~= nil
 end
 
 -- Load flow
@@ -819,7 +823,7 @@ describe("Flow", function()
             }, [[
                 size[1.6,1.6]
                 style[_#0;hello=world]
-                button[0.3,0.3;1,1;\10;]
+                button[0.3,0.3;1,1;_#0;]
             ]])
         end)
 

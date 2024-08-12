@@ -651,7 +651,8 @@ function field_value_transformers.dropdown(node, _, formspec_version)
     -- value of the dropdown is anyway, we can just enable index_event for new
     -- clients and keep the same behaviour
     if (formspec_version and formspec_version >= 4) or
-            (minetest.global_exists("fs51") and fs51.monkey_patching_enabled) then
+            (minetest.global_exists("fs51") and
+             fs51.monkey_patching_enabled) then
         node.index_event = true
 
         -- Detect reuse of the same Dropdown element (this is unsupported and
