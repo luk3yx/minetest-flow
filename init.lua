@@ -785,17 +785,11 @@ local function parse_callbacks(tree, ctx_form, auto_name_id,
         if node_name and node_name ~= "" then
             local value_field = default_value_fields[node.type]
             if value_field then
-                -- Add the corresponding value transformer transformer to
-                -- saved_fields
-                saved_fields[node_name] = (
-                    field_value_transformers[node.type] or
-                    default_field_value_transformer
-                )
-
                 -- Update ctx.form if there is no current value, otherwise
                 -- change the node's value to the saved one.
                 local value = ctx_form[node_name]
-                if node.type == "dropdown" and not node.index_event then
+                if node.type == "dropdown" and not node.index_event and
+                        not node._index_event_hack then
                     -- Special case for dropdowns without index_event
                     local items = node.items or {}
                     if value == nil then
@@ -828,6 +822,8 @@ local function parse_callbacks(tree, ctx_form, auto_name_id,
                     node[value_field] = value
                 end
 
+                -- Add the corresponding value transformer transformer to
+                -- saved_fields
                 local get_transformer = field_value_transformers[node.type]
                 saved_fields[node_name] = get_transformer and
                     get_transformer(node, tablecolumn_count,
