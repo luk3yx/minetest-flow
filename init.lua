@@ -788,8 +788,8 @@ local function parse_callbacks(tree, ctx_form, auto_name_id,
                 -- Update ctx.form if there is no current value, otherwise
                 -- change the node's value to the saved one.
                 local value = ctx_form[node_name]
-                if node.type == "dropdown" and not node.index_event and
-                        not node._index_event_hack then
+                if node.type == "dropdown" and (not node.index_event or
+                        node._index_event_hack) then
                     -- Special case for dropdowns without index_event
                     local items = node.items or {}
                     if value == nil then
