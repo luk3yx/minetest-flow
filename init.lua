@@ -709,6 +709,7 @@ end
 
 local default_value_fields = {
     field = "default",
+    pwdfield = "default",
     textarea = "default",
     checkbox = "selected",
     dropdown = "selected_idx",
