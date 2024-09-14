@@ -29,14 +29,14 @@ local ceil, floor, min, max = math.ceil, math.floor, math.min, math.max
 -- Estimates the width of a valid UTF-8 string, ignoring any escape sequences.
 -- This function hopefully works with most (but not all) scripts, maybe it
 -- could still be improved.
-local byte = string.byte
+local byte, strlen = string.byte, string.len
 local LPAREN = byte("(")
 local function naive_str_width(str)
     local w = 0
     local prev_w = 0
     local line_count = 1
     local i = 1
-    local str_length = #str
+    local str_length = strlen(str)
     while i <= str_length do
         local char = byte(str, i)
         if char == 0x1b then
