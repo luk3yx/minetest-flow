@@ -36,6 +36,8 @@ local function naive_str_width(str)
     local prev_w = 0
     local line_count = 1
     local i = 1
+    -- string.len() is used so that numbers are coerced to strings without any
+    -- extra checking
     local str_length = strlen(str)
     while i <= str_length do
         local char = byte(str, i)
