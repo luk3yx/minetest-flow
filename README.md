@@ -1,8 +1,8 @@
 # flow
 
-[![ContentDB](https://content.minetest.net/packages/luk3yx/flow/shields/downloads/)](https://content.minetest.net/packages/luk3yx/flow/)
+[![ContentDB](https://content.luanti.org/packages/luk3yx/flow/shields/downloads/)](https://content.luanti.org/packages/luk3yx/flow/)
 
-An experimental layout manager and formspec API replacement for Minetest.
+An experimental layout manager and formspec API replacement for Luanti (formerly Minetest).
 Vaguely inspired by Flutter and GTK.
 
 [Online tutorial/demo](https://luk3yx.gitlab.io/minetest-flow-playground/)
@@ -28,14 +28,14 @@ Vaguely inspired by Flutter and GTK.
  - No having to worry about state.
  - Values of fields, scrollbars, checkboxes, etc are remembered when
    redrawing a form and are automatically applied.
- - Has an [inspector mod](https://content.minetest.net/packages/luk3yx/flow_inspector/)
+ - Has an [inspector mod](https://content.luanti.org/packages/luk3yx/flow_inspector/)
    to help with developing and debugging forms.
  - Some common security issues with formspec input handling are mitigated.
 
 ## Limitations
 
  - This mod doesn't support all of the features that regular formspecs do.
- - [FS51](https://content.minetest.net/packages/luk3yx/fs51/) is required if
+ - [FS51](https://content.luanti.org/packages/luk3yx/fs51/) is required if
    you want to have full support for Minetest 5.3 and below.
  - Make sure you're using the latest version of flow if you are on MT 5.10-dev
    or later, older versions used a hack which no longer works.
@@ -74,7 +74,7 @@ local my_gui = flow.make_gui(function(player, ctx)
             on_event = function(player, ctx)
                 -- flow should guarantee that `ctx.form.my_dropdown` exists, even if the client doesn't send my_dropdown to the server.
                 local selected_idx = ctx.form.my_dropdown
-                minetest.chat_send_player(player:get_player_name(), "You have selected item #" .. selected_idx .. "!")
+                core.chat_send_player(player:get_player_name(), "You have selected item #" .. selected_idx .. "!")
             end,
         }
     }
@@ -118,7 +118,7 @@ end)
 
 -- Re-shows the form for all players with the "server" privilege
 my_gui:update_where(function(player, ctx)
-    return minetest.check_player_privs(player, "server")
+    return core.check_player_privs(player, "server")
 end)
 
 -- Re-shows the form for all players with the form open
@@ -148,12 +148,12 @@ a newline without pasting it in).
 These utilities likely aren't compatible with flow.
 
  - [fs_layout](https://github.com/fluxionary/minetest-fs_layout/) is another mod library that does automatic formspec element positioning.
- - [fslib](https://content.minetest.net/packages/LMD/fslib/) is a small mod library that lets you build formspec strings.
- - [Just_Visiting's formspec editor](https://content.minetest.net/packages/Just_Visiting/formspec_editor) is a Minetest (sub)game that lets you edit formspecs and preview them as you go
+ - [fslib](https://content.luanti.org/packages/LMD/fslib/) is a small mod library that lets you build formspec strings.
+ - [Just_Visiting's formspec editor](https://content.luanti.org/packages/Just_Visiting/formspec_editor) is a Minetest (sub)game that lets you edit formspecs and preview them as you go
  - [kuto](https://github.com/TerraQuest-Studios/kuto/) is a formspec library that has some extra widgets/components and has a callback API. Some automatic sizing can be done for buttons.
    - It may be possible to use kuto's components with flow somehow as they both use formspec_ast internally.
    - kuto was the the source of the "on_event" function idea.
- - [My web-based formspec editor](https://forum.minetest.net/viewtopic.php?f=14&t=24130) lets you add elements and drag+drop them, however it doesn't support all formspec features.
+ - [My web-based formspec editor](https://forum.luanti.org/viewtopic.php?f=14&t=24130) lets you add elements and drag+drop them, however it doesn't support all formspec features.
 
 ## Elements
 
@@ -469,7 +469,7 @@ player. Elements hidden this way will still take up space like with
 <summary><b>Using a form as an inventory</b></summary>
 
 > [!TIP]
-> Consider using [Sway](https://content.minetest.net/packages/lazerbeak12345/sway/)
+> Consider using [Sway](https://content.luanti.org/packages/lazerbeak12345/sway/)
 > instead if you want to use flow as an inventory replacement while still
 > having some way for other mods to extend the inventory.
 

@@ -5,11 +5,11 @@ globals = {
 }
 
 read_globals = {
+    'core',
     'dump',
     'formspec_ast',
     'fs51',
     'hud_fs',
-    'minetest',
     string = {fields = {'split', 'trim'}},
     table = {fields = {'copy', 'indexof'}}
 }

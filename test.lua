@@ -1,5 +1,5 @@
 --
--- Minetest formspec layout engine
+-- Luanti formspec layout engine
 --
 -- Copyright © 2022 by luk3yx
 --
@@ -24,26 +24,26 @@ _G.FORMSPEC_AST_PATH = '../formspec_ast'
 dofile(FORMSPEC_AST_PATH .. '/init.lua')
 
 -- Stub Minetest API
-_G.minetest = {}
+_G.core = {}
 
-function minetest.is_yes(str)
+function core.is_yes(str)
     str = str:lower()
     return str == "true" or str == "yes"
 end
 
 local callback
-function minetest.register_on_player_receive_fields(func)
+function core.register_on_player_receive_fields(func)
     assert(callback == nil)
     callback = func
 end
 
 local function dummy() end
-minetest.register_on_leaveplayer = dummy
-minetest.is_singleplayer = dummy
-minetest.get_player_information = dummy
-minetest.show_formspec = dummy
+core.register_on_leaveplayer = dummy
+core.is_singleplayer = dummy
+core.get_player_information = dummy
+core.show_formspec = dummy
 
-function minetest.get_modpath(modname)
+function core.get_modpath(modname)
     if modname == "flow" then
         return "."
     elseif modname == "formspec_ast" then
@@ -51,7 +51,7 @@ function minetest.get_modpath(modname)
     end
 end
 
-function minetest.get_translator(modname)
+function core.get_translator(modname)
     assert(modname == "flow")
     return function(str) return str end
 end
@@ -72,7 +72,7 @@ local function stub_player(name)
             return formspec
         end
     end
-    function minetest.get_player_by_name(passed_in_name)
+    function core.get_player_by_name(passed_in_name)
         assert(name == passed_in_name)
         return self
     end
@@ -99,21 +99,21 @@ string.split = string.split or function(str, chr)
     return r
 end
 
-function minetest.explode_textlist_event(event)
+function core.explode_textlist_event(event)
     local event_type, number = event:match("^([A-Z]+):(%d+)$")
     return {type = event_type, index = tonumber(number) or 0}
 end
 
-function minetest.explode_table_event(event)
+function core.explode_table_event(event)
     local event_type, row, column = event:match("^([A-Z]+):(%d+):(%d+)$")
     return {type = event_type, row = tonumber(row) or 0, column = tonumber(column) or 0}
 end
 
-function minetest.global_exists(var)
+function core.global_exists(var)
     return rawget(_G, var) ~= nil
 end
 
-function minetest.get_player_information(name)
+function core.get_player_information(name)
     return name == "fs6" and {formspec_version = 6} or nil
 end
 
@@ -519,7 +519,7 @@ describe("Flow", function()
             assert.equals(manual_spy[1], player, "player was first arg")
             assert.equals(manual_spy[2], ctx, "context was next")
 
-            minetest.get_player_by_name = nil
+            core.get_player_by_name = nil
         end)
     end)
 

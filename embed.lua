@@ -1,5 +1,5 @@
 --
--- Minetest formspec layout engine
+-- Luanti formspec layout engine
 --
 -- Copyright © 2022 by luk3yx
 --

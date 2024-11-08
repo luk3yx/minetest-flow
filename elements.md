@@ -4,11 +4,11 @@ This is probably broken.
 
 ### `gui.AnimatedImage`
 
-Equivalent to Minetest's `animated_image[]` element.
+Equivalent to Luanti's `animated_image[]` element.
 
 **Example**
 ```lua
-gui.AnimatedImage {
+gui.AnimatedImage{
     w = 1,
     h = 2,
     name = "my_animated_image", -- Optional
@@ -33,11 +33,11 @@ gui.AnimatedImage {
 
 ### `gui.Box`
 
-Equivalent to Minetest's `box[]` element.
+Equivalent to Luanti's `box[]` element.
 
 **Example**
 ```lua
-gui.Box {
+gui.Box{
     w = 1, -- Optional
     h = 2, -- Optional
     color = "#FF0000",
@@ -46,11 +46,11 @@ gui.Box {
 
 ### `gui.Button`
 
-Equivalent to Minetest's `button[]` element.
+Equivalent to Luanti's `button[]` element.
 
 **Example**
 ```lua
-gui.Button {
+gui.Button{
     w = 1, -- Optional
     h = 2, -- Optional
     name = "my_button", -- Optional
@@ -60,11 +60,11 @@ gui.Button {
 
 ### `gui.ButtonExit`
 
-Equivalent to Minetest's `button_exit[]` element.
+Equivalent to Luanti's `button_exit[]` element.
 
 **Example**
 ```lua
-gui.ButtonExit {
+gui.ButtonExit{
     w = 1, -- Optional
     h = 2, -- Optional
     name = "my_button_exit", -- Optional
@@ -72,13 +72,43 @@ gui.ButtonExit {
 }
 ```
 
-### `gui.Checkbox`
+### `gui.ButtonURL`
 
-Equivalent to Minetest's `checkbox[]` element.
+Equivalent to Luanti's `button_url[]` element.
 
 **Example**
 ```lua
-gui.Checkbox {
+gui.ButtonURL{
+    w = 1, -- Optional
+    h = 2, -- Optional
+    name = "my_button_url", -- Optional
+    label = "Hello world!",
+    url = "Hello world!",
+}
+```
+
+### `gui.ButtonUrlExit`
+
+Equivalent to Luanti's `button_url_exit[]` element.
+
+**Example**
+```lua
+gui.ButtonUrlExit{
+    w = 1, -- Optional
+    h = 2, -- Optional
+    name = "my_button_url_exit", -- Optional
+    label = "Hello world!",
+    url = "Hello world!",
+}
+```
+
+### `gui.Checkbox`
+
+Equivalent to Luanti's `checkbox[]` element.
+
+**Example**
+```lua
+gui.Checkbox{
     name = "my_checkbox", -- Optional
     label = "Hello world!",
     selected = false, -- Optional
@@ -87,11 +117,11 @@ gui.Checkbox {
 
 ### `gui.Dropdown`
 
-Equivalent to Minetest's `dropdown[]` element.
+Equivalent to Luanti's `dropdown[]` element.
 
 **Example**
 ```lua
-gui.Dropdown {
+gui.Dropdown{
     w = 1, -- Optional
     h = 2, -- Optional
     name = "my_dropdown", -- Optional
@@ -103,11 +133,11 @@ gui.Dropdown {
 
 ### `gui.Field`
 
-Equivalent to Minetest's `field[]` element.
+Equivalent to Luanti's `field[]` element.
 
 **Example**
 ```lua
-gui.Field {
+gui.Field{
     w = 1, -- Optional
     h = 2, -- Optional
     name = "my_field", -- Optional
@@ -122,11 +152,11 @@ gui.Field {
 
 ### `gui.Hypertext`
 
-Equivalent to Minetest's `hypertext[]` element.
+Equivalent to Luanti's `hypertext[]` element.
 
 **Example**
 ```lua
-gui.Hypertext {
+gui.Hypertext{
     w = 1,
     h = 2,
     name = "my_hypertext", -- Optional
@@ -136,11 +166,11 @@ gui.Hypertext {
 
 ### `gui.Image`
 
-Equivalent to Minetest's `image[]` element.
+Equivalent to Luanti's `image[]` element.
 
 **Example**
 ```lua
-gui.Image {
+gui.Image{
     w = 1,
     h = 2,
     texture_name = "texture.png",
@@ -153,11 +183,11 @@ gui.Image {
 
 ### `gui.ImageButton`
 
-Equivalent to Minetest's `image_button[]` element.
+Equivalent to Luanti's `image_button[]` element.
 
 **Example**
 ```lua
-gui.ImageButton {
+gui.ImageButton{
     w = 1,
     h = 2,
     texture_name = "texture.png",
@@ -171,11 +201,11 @@ gui.ImageButton {
 
 ### `gui.ImageButtonExit`
 
-Equivalent to Minetest's `image_button_exit[]` element.
+Equivalent to Luanti's `image_button_exit[]` element.
 
 **Example**
 ```lua
-gui.ImageButtonExit {
+gui.ImageButtonExit{
     w = 1,
     h = 2,
     texture_name = "texture.png",
@@ -189,11 +219,11 @@ gui.ImageButtonExit {
 
 ### `gui.ItemImage`
 
-Equivalent to Minetest's `item_image[]` element.
+Equivalent to Luanti's `item_image[]` element.
 
 **Example**
 ```lua
-gui.ItemImage {
+gui.ItemImage{
     w = 1,
     h = 2,
     item_name = "Hello world!",
@@ -202,11 +232,11 @@ gui.ItemImage {
 
 ### `gui.ItemImageButton`
 
-Equivalent to Minetest's `item_image_button[]` element.
+Equivalent to Luanti's `item_image_button[]` element.
 
 **Example**
 ```lua
-gui.ItemImageButton {
+gui.ItemImageButton{
     w = 1,
     h = 2,
     item_name = "Hello world!",
@@ -217,22 +247,22 @@ gui.ItemImageButton {
 
 ### `gui.Label`
 
-Equivalent to Minetest's `label[]` element.
+Equivalent to Luanti's `label[]` element.
 
 **Example**
 ```lua
-gui.Label {
+gui.Label{
     label = "Hello world!",
 }
 ```
 
 ### `gui.List`
 
-Equivalent to Minetest's `list[]` element.
+Equivalent to Luanti's `list[]` element.
 
 **Example**
 ```lua
-gui.List {
+gui.List{
     inventory_location = "Hello world!",
     list_name = "Hello world!",
     w = 1,
@@ -246,11 +276,11 @@ gui.List {
 
 ### `gui.Model`
 
-Equivalent to Minetest's `model[]` element.
+Equivalent to Luanti's `model[]` element.
 
 **Example**
 ```lua
-gui.Model {
+gui.Model{
     w = 1,
     h = 2,
     name = "my_model", -- Optional
@@ -278,11 +308,11 @@ gui.Model {
 
 ### `gui.Pwdfield`
 
-Equivalent to Minetest's `pwdfield[]` element.
+Equivalent to Luanti's `pwdfield[]` element.
 
 **Example**
 ```lua
-gui.Pwdfield {
+gui.Pwdfield{
     w = 1, -- Optional
     h = 2, -- Optional
     name = "my_pwdfield", -- Optional
@@ -292,11 +322,11 @@ gui.Pwdfield {
 
 ### `gui.Table`
 
-Equivalent to Minetest's `table[]` element.
+Equivalent to Luanti's `table[]` element.
 
 **Example**
 ```lua
-gui.Table {
+gui.Table{
     w = 1, -- Optional
     h = 2, -- Optional
     name = "my_table", -- Optional
@@ -309,11 +339,11 @@ gui.Table {
 
 ### `gui.TableColumns`
 
-Equivalent to Minetest's `tablecolumns[]` element.
+Equivalent to Luanti's `tablecolumns[]` element.
 
 **Example**
 ```lua
-gui.TableColumns {
+gui.TableColumns{
     tablecolumns = {
         {
             type = "text",
@@ -326,22 +356,22 @@ gui.TableColumns {
 
 ### `gui.TableOptions`
 
-Equivalent to Minetest's `tableoptions[]` element.
+Equivalent to Luanti's `tableoptions[]` element.
 
 **Example**
 ```lua
-gui.TableOptions {
+gui.TableOptions{
     opts = {field = "value"},
 }
 ```
 
 ### `gui.Textarea`
 
-Equivalent to Minetest's `textarea[]` element.
+Equivalent to Luanti's `textarea[]` element.
 
 **Example**
 ```lua
-gui.Textarea {
+gui.Textarea{
     w = 1, -- Optional
     h = 2, -- Optional
     name = "my_textarea", -- Optional
@@ -352,11 +382,11 @@ gui.Textarea {
 
 ### `gui.Textlist`
 
-Equivalent to Minetest's `textlist[]` element.
+Equivalent to Luanti's `textlist[]` element.
 
 **Example**
 ```lua
-gui.Textlist {
+gui.Textlist{
     w = 1, -- Optional
     h = 2, -- Optional
     name = "my_textlist", -- Optional
@@ -368,11 +398,11 @@ gui.Textlist {
 
 ### `gui.Tooltip`
 
-Equivalent to Minetest's `tooltip[]` element.
+Equivalent to Luanti's `tooltip[]` element.
 
 **Example**
 ```lua
-gui.Tooltip {
+gui.Tooltip{
     tooltip_text = "Hello world!",
     bgcolor = "#FF0000", -- Optional
     fontcolor = "#FF0000", -- Optional
@@ -382,11 +412,11 @@ gui.Tooltip {
 
 ### `gui.Vertlabel`
 
-Equivalent to Minetest's `vertlabel[]` element.
+Equivalent to Luanti's `vertlabel[]` element.
 
 **Example**
 ```lua
-gui.Vertlabel {
+gui.Vertlabel{
     label = "Hello world!",
 }
 ```

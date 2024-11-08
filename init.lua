@@ -1,5 +1,5 @@
 --
--- Minetest formspec layout engine
+-- Luanti formspec layout engine
 --
 -- Copyright © 2022 by luk3yx
 --
@@ -19,8 +19,8 @@
 
 local DEBUG_MODE = false
 flow = {}
-local S = minetest.get_translator("flow")
-local modpath = minetest.get_modpath("flow")
+local S = core.get_translator("flow")
+local modpath = core.get_modpath("flow")
 
 local Form = {}
 
@@ -83,7 +83,7 @@ local CHAR_WIDTH = 0.21
 local current_lang
 
 -- get_translated_string doesn't exist in MT 5.2.0 and older
-local get_translated_string = minetest.get_translated_string or function(_, s)
+local get_translated_string = core.get_translated_string or function(_, s)
     return s
 end
 
@@ -156,6 +156,7 @@ size_getters.button_exit = size_getters.button
 size_getters.image_button = size_getters.button
 size_getters.image_button_exit = size_getters.button
 size_getters.item_image_button = size_getters.button
+size_getters.button_url = size_getters.button
 
 function size_getters.field(node)
     local label_w, label_h = get_label_size(node.label)
@@ -289,7 +290,7 @@ function size_getters.stack(stack)
 end
 
 function size_getters.padding(node)
-    minetest.log("warning", "[flow] The gui.Padding element is deprecated")
+    core.log("warning", "[flow] The gui.Padding element is deprecated")
     assert(#node == 1, "Padding can only have one element inside.")
     local n = node[1]
     local x, y = apply_padding(n, 0, 0)
@@ -365,7 +366,7 @@ function align_types.fill(node, x, w, extra_space)
     if node[w] then
         node[w] = node[w] + extra_space
     else
-        minetest.log("warning", "[flow] Unknown element: \"" ..
+        core.log("warning", "[flow] Unknown element: \"" ..
             tostring(node.type) .. "\". Please make sure that flow is " ..
             "up-to-date and the element has a size set (if required).")
         node[w] = extra_space
@@ -541,12 +542,12 @@ end
 -- Renders the GUI into hopefully valid AST
 -- This won't fill in names
 local function render_ast(node, embedded)
-    local t1 = DEBUG_MODE and minetest.get_us_time()
+    local t1 = DEBUG_MODE and core.get_us_time()
     node.padding = node.padding or 0.3
     local w, h = apply_padding(node, 0, 0)
-    local t2 = DEBUG_MODE and minetest.get_us_time()
+    local t2 = DEBUG_MODE and core.get_us_time()
     expand(node)
-    local t3 = DEBUG_MODE and minetest.get_us_time()
+    local t3 = DEBUG_MODE and core.get_us_time()
     local res = {
         formspec_version = 7,
         {type = "size", w = w, h = h},
@@ -589,7 +590,7 @@ local function render_ast(node, embedded)
     res[#res + 1] = node
 
     if DEBUG_MODE then
-        local t4 = minetest.get_us_time()
+        local t4 = core.get_us_time()
         print('apply_padding', t2 - t1)
         print('expand', t3 - t2)
         print('field_close_on_enter', t4 - t3)
@@ -627,12 +628,12 @@ local field_value_transformers = {
         -- Remove control characters and newlines
         return value:gsub("[%z\1-\8\10-\31\127]", ""):gsub(C1_CHARS, "")
     end),
-    checkbox = simple_transformer(minetest.is_yes),
+    checkbox = simple_transformer(core.is_yes),
 
     -- Scrollbars do have min/max values but scrollbars are only really used by
     -- ScrollableVBox which doesn't need the extra checks
     scrollbar = simple_transformer(function(value)
-        return minetest.explode_scrollbar_event(value).value
+        return core.explode_scrollbar_event(value).value
     end),
 }
 
@@ -653,7 +654,7 @@ function field_value_transformers.dropdown(node, _, formspec_version)
     -- value of the dropdown is anyway, we can just enable index_event for new
     -- clients and keep the same behaviour
     if (formspec_version and formspec_version >= 4) or
-            (minetest.global_exists("fs51") and
+            (core.global_exists("fs51") and
              fs51.monkey_patching_enabled) then
         node.index_event = true
 
@@ -682,7 +683,7 @@ function field_value_transformers.table(node, tablecolumn_count)
     local rows = ceil(cells / tablecolumn_count)
 
     return function(value)
-        local row = floor(minetest.explode_table_event(value).row)
+        local row = floor(core.explode_table_event(value).row)
         -- Tables and textlists can have values of 0 (nothing selected) but I
         -- don't think the client can un-select a row so it should be safe to
         -- ignore any 0 sent by the client to guarantee that the row will be
@@ -696,7 +697,7 @@ end
 function field_value_transformers.textlist(node)
     local rows = node.listelems and #node.listelems or 0
     return function(value)
-        local index = floor(minetest.explode_textlist_event(value).index)
+        local index = floor(core.explode_textlist_event(value).index)
         if index >= 1 and index <= rows then
             return index
         end
@@ -847,7 +848,7 @@ local function parse_callbacks(tree, ctx_form, auto_name_id,
             elseif btn_callbacks[node_name] or
                     (is_btn and saved_fields[node_name]) or
                     (callbacks and callbacks[node_name]) then
-                minetest.log("warning", ("[flow] Multiple callbacks have " ..
+                core.log("warning", ("[flow] Multiple callbacks have " ..
                     "been registered for elements with the same name (%q), " ..
                     "this will not work properly."):format(node_name))
 
@@ -899,7 +900,7 @@ local gui_mt = {
 }
 local gui = setmetatable({
     embed = function(fs, w, h)
-        minetest.log("warning", "[flow] gui.embed() is deprecated")
+        core.log("warning", "[flow] gui.embed() is deprecated")
         if type(fs) ~= "table" then
             fs = formspec_ast.parse(fs)
         end
@@ -929,7 +930,7 @@ local function insert_style_elem(tree, idx, node, props, sels)
             if suffix then
                 selectors[i] = base_selector .. ":" .. suffix
             else
-                minetest.log("warning", "[flow] Invalid style selector: " ..
+                core.log("warning", "[flow] Invalid style selector: " ..
                     tostring(sel))
             end
         end
@@ -1097,15 +1098,15 @@ end
 
 local function prepare_form(self, player, formname, ctx, auto_name_id)
     local name = player:get_player_name()
-    -- local t = DEBUG_MODE and minetest.get_us_time()
-    local info = minetest.get_player_information(name)
+    -- local t = DEBUG_MODE and core.get_us_time()
+    local info = core.get_player_information(name)
     local tree, form_info = self:_render(player, ctx,
         info and info.formspec_version, auto_name_id, false,
         info and info.lang_code)
 
-    -- local t2 = DEBUG_MODE and minetest.get_us_time()
+    -- local t2 = DEBUG_MODE and core.get_us_time()
     local fs = assert(formspec_ast.unparse(tree))
-    -- local t3 = DEBUG_MODE and minetest.get_us_time()
+    -- local t3 = DEBUG_MODE and core.get_us_time()
 
     form_info.formname = formname
     -- if DEBUG_MODE then
@@ -1121,15 +1122,15 @@ local function show_form(self, player, formname, ctx, auto_name_id)
         auto_name_id)
 
     open_formspecs[name] = form_info
-    minetest.show_formspec(name, formname, fs)
+    core.show_formspec(name, formname, fs)
 end
 
 local next_formname = 0
 function Form:show(player, ctx)
     if type(player) == "string" then
-        minetest.log("warning",
+        core.log("warning",
             "[flow] Calling form:show() with a player name is deprecated")
-        player = minetest.get_player_by_name(player)
+        player = core.get_player_by_name(player)
         if not player then return end
     end
 
@@ -1142,7 +1143,7 @@ function Form:show(player, ctx)
 end
 
 function Form:show_hud(player, ctx)
-    local info = minetest.get_player_information(player:get_player_name())
+    local info = core.get_player_information(player:get_player_name())
     local tree = self:_render(player, ctx or {}, nil, nil, nil,
         info and info.lang_code)
     hud_fs.show_hud(player, self, tree)
@@ -1177,7 +1178,7 @@ local render_to_formspec_auto_name_ids = {}
 -- target formspec version
 function Form:render_to_formspec_string(player, ctx, standalone)
     local name = player:get_player_name()
-    local info = minetest.get_player_information(name)
+    local info = core.get_player_information(name)
     local tree, form_info = self:_render(player, ctx or {},
         info and info.formspec_version, render_to_formspec_auto_name_ids[name],
         not standalone, info and info.lang_code)
@@ -1194,9 +1195,9 @@ function Form:render_to_formspec_string(player, ctx, standalone)
         -- Just in case the player goes offline, we should not keep the player
         -- reference. Nothing prevents the user from calling this function when
         -- the player is offline, unlike the _real_ formspec submission.
-        local player = minetest.get_player_by_name(name)
+        local player = core.get_player_by_name(name)
         if not player then
-            minetest.log("warning", "[flow] Player " .. name ..
+            core.log("warning", "[flow] Player " .. name ..
                 " was offline when render_to_formspec_string event was" ..
                 " triggered. Events were not passed through.")
             return nil
@@ -1211,7 +1212,7 @@ function Form:close(player)
     local form_info = open_formspecs[name]
     if form_info and form_info.self == self then
         open_formspecs[name] = nil
-        minetest.close_formspec(name, form_info.formname)
+        core.close_formspec(name, form_info.formname)
     end
 end
 
@@ -1228,7 +1229,7 @@ function Form:unset_as_inventory_for(player)
     end
 end
 
--- This function may eventually call minetest.update_formspec if/when it gets
+-- This function may eventually call core.update_formspec if/when it gets
 -- added (https://github.com/minetest/minetest/issues/13142)
 local function update_form(self, player, form_info)
     show_form(self, player, form_info.formname, form_info.ctx,
@@ -1245,7 +1246,7 @@ end
 function Form:update_where(func)
     for name, form_info in pairs(open_formspecs) do
         if form_info.self == self then
-            local player = minetest.get_player_by_name(name)
+            local player = core.get_player_by_name(name)
             if player and func(player, form_info.ctx) then
                 update_form(self, player, form_info)
             end
@@ -1281,7 +1282,7 @@ function fs_process_events(player, form_info, fields)
                 -- potential to break things. Please open an issue if you
                 -- (somehow) need to use longer text in fields.
                 local name = player:get_player_name()
-                minetest.log("warning", "[flow] Player " .. name .. " tried" ..
+                core.log("warning", "[flow] Player " .. name .. " tried" ..
                     " submitting a large field value (>60 kB), ignoring.")
             else
                 local new_value = transformer(raw_value)
@@ -1327,7 +1328,7 @@ function fs_process_events(player, form_info, fields)
     return redraw_fs
 end
 
-minetest.register_on_player_receive_fields(function(player, formname, fields)
+core.register_on_player_receive_fields(function(player, formname, fields)
     local name = player:get_player_name()
     local form_infos = formname == "" and open_inv_formspecs or open_formspecs
     local form_info = form_infos[name]
@@ -1350,7 +1351,7 @@ minetest.register_on_player_receive_fields(function(player, formname, fields)
     return true
 end)
 
-minetest.register_on_leaveplayer(function(player)
+core.register_on_leaveplayer(function(player)
     local name = player:get_player_name()
     open_formspecs[name] = nil
     open_inv_formspecs[name] = nil
@@ -1537,9 +1538,9 @@ function gui_mt.__newindex()
     error("Cannot modifiy gui table")
 end
 
-if minetest.is_singleplayer() then
+if core.is_singleplayer() then
     local example_form
-    minetest.register_chatcommand("flow-example", {
+    core.register_chatcommand("flow-example", {
         privs = {server = true},
         help = S"Shows an example form",
         func = function(name)
@@ -1547,7 +1548,7 @@ if minetest.is_singleplayer() then
             if not example_form then
                 example_form = dofile(modpath .. "/example.lua")
             end
-            example_form:show(minetest.get_player_by_name(name))
+            example_form:show(core.get_player_by_name(name))
         end,
     })
 end
@@ -1557,5 +1558,5 @@ if DEBUG_MODE then
     if f then
         return f()
     end
-    minetest.log("error", "[flow] " .. tostring(err))
+    core.log("error", "[flow] " .. tostring(err))
 end

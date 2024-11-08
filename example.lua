@@ -1,5 +1,5 @@
 --
--- Minetest formspec layout engine
+-- Luanti formspec layout engine
 --
 -- Copyright © 2022 by luk3yx
 --
@@ -19,7 +19,7 @@
 
 -- You can run /flow-example in singleplayer to open this form
 local gui = flow.widgets
-local S = minetest.get_translator("flow")
+local S = core.get_translator("flow")
 
 local elements = {"box", "label", "image", "field", "checkbox", "list"}
 local alignments = {"auto", "start", "end", "centre", "fill"}
@@ -99,7 +99,7 @@ local my_gui = flow.make_gui(function(player, ctx)
                 ctx.form.checkbox = not ctx.form.checkbox
 
                 -- Send a chat message
-                minetest.chat_send_player(player:get_player_name(), S"Toggled!")
+                core.chat_send_player(player:get_player_name(), S"Toggled!")
 
                 -- Return true to tell flow to redraw the formspec
                 return true

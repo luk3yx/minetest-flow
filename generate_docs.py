@@ -7,7 +7,8 @@ hide_elements = {
     'background', 'background9', 'scroll_container', 'scrollbar', 'tabheader'
 }
 hide_comments = {'x', 'y', 'w', 'h', 'name', 'selected'}
-special_case_names = {'tablecolumns': 'TableColumns',
+special_case_names = {'button_url': 'ButtonURL',
+                      'tablecolumns': 'TableColumns',
                       'tableoptions': 'TableOptions'}
 
 
@@ -94,10 +95,10 @@ def element_to_docs(element_name, variants):
 
     lines = [
         f'### `gui.{flow_name}`\n',
-        f"Equivalent to Minetest's `{element_name}[]` element.\n",
+        f"Equivalent to Luanti's `{element_name}[]` element.\n",
         '**Example**',
         '```lua',
-        f'gui.{flow_name} {{'
+        f'gui.{flow_name}{{'
     ]
 
     num = 1
