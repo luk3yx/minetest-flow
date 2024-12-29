@@ -379,11 +379,11 @@ it is 0.1.
 
 ## Styling forms
 
-### Experimental new syntax
+### Inline syntax
 
 At the moment I suggest only using this syntax if your form won't look broken
 without the style - older versions of flow don't support this syntax, and I may
-make breaking changes to it (such as sub-style syntax) in the future.
+make breaking changes to the sub-style syntax in the future.
 
 You can add inline styles to elements with the `style` field:
 
@@ -420,7 +420,7 @@ end)
 Note that this may inadvertently reset styles on subsequent elements if used on
 elements without a name due to formspec limitations.
 
-### Alternative more stable syntax
+### Separate style elements
 
 Alternatively, you can use the `gui.Style` and `gui.StyleType` elements if you
 need to style a large group of elements or need to support older versions of
