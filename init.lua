@@ -921,7 +921,13 @@ function flow.get_context()
     return current_ctx
 end
 
+-- Returns the new index of the affected element
 local function insert_style_elem(tree, idx, node, props, sels)
+    if not next(props) then
+        -- No properties, don't try and add an empty style element
+        return idx
+    end
+
     local base_selector = node.name or node.type
     local selectors = {}
     if sels then
@@ -960,6 +966,8 @@ local function insert_style_elem(tree, idx, node, props, sels)
             props = reset_props,
         })
     end
+
+    return idx + 1
 end
 
 local function extract_props(t)
@@ -988,11 +996,11 @@ local function insert_shorthand_elements(tree)
                 -- elements.
                 props = extract_props(props)
             end
-            insert_style_elem(tree, i, node, props)
+            local next_idx = insert_style_elem(tree, i, node, props)
 
-            for j, substyle in ipairs(node.style) do
-                insert_style_elem(tree, i + j, node, extract_props(substyle),
-                    substyle.sel:split(","))
+            for _, substyle in ipairs(node.style) do
+                next_idx = insert_style_elem(tree, next_idx, node,
+                    extract_props(substyle), substyle.sel:split(","))
             end
         end
 
