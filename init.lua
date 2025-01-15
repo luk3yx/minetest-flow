@@ -833,6 +833,11 @@ local function parse_callbacks(tree, ctx_form, auto_name_id,
                     get_transformer(node, tablecolumn_count,
                         formspec_version) or
                     default_field_value_transformer
+            elseif node.type == "hypertext" then
+                -- Experimental (may be broken in the future): Allow accessing
+                -- hypertext fields with "ctx.form.hypertext_name" as this is
+                -- the most straightforward way of doing it.
+                saved_fields[node_name] = default_field_value_transformer
             end
         end
 
