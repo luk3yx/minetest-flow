@@ -933,7 +933,8 @@ local function insert_style_elem(tree, idx, node, props, sels)
         return idx
     end
 
-    local base_selector = node.name or node.type
+    local style_type = node.name == "_#" or not node.name
+    local base_selector = style_type and node.type or node.name
     local selectors = {}
     if sels then
         for i, sel in ipairs(sels) do
@@ -951,12 +952,12 @@ local function insert_style_elem(tree, idx, node, props, sels)
 
 
     table.insert(tree, idx, {
-        type = node.name and "style" or "style_type",
+        type = style_type and "style_type" or style,
         selectors = selectors,
         props = props,
     })
 
-    if not node.name then
+    if style_type then
         -- Undo style_type modifications
         local reset_props = {}
         for k in pairs(props) do
