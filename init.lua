@@ -952,7 +952,7 @@ local function insert_style_elem(tree, idx, node, props, sels)
 
 
     table.insert(tree, idx, {
-        type = style_type and "style_type" or style,
+        type = style_type and "style_type" or "style",
         selectors = selectors,
         props = props,
     })
