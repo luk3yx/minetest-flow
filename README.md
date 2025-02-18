@@ -597,4 +597,29 @@ end)
 
 Special characters (excluding `-` and `_`) are not allowed in embed names.
 
+</details><details>
+<summary><b>Running code when a form is closed</b></summary>
+
+`gui.Container`, `gui.HBox`, `gui.VBox`, and `gui.Stack` elements support an
+`on_quit` callback which gets run when a player closes a form.
+
+Note that this function is not called in some cases, such as when the player
+leaves without closing the form or when another form/formspec is shown.
+
+This function must not return anything, behaviour may get added to return
+values in the future.
+
+```lua
+local parent_form = flow.make_gui(function(player, ctx)
+    return gui.VBox{
+        on_quit = function(player, ctx)
+            core.chat_send_player(player:get_player_name(), "Form closed!")
+        end,
+    }
+end)
+```
+
+If multiple `on_quit` callbacks are specified in different elements, they will
+all get called.
+
 </details>
