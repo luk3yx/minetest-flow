@@ -118,10 +118,19 @@ function core.get_player_information(name)
 end
 
 -- Load flow
-local f = assert(io.open("init.lua"))
-local code = f:read("*a") .. "\nreturn naive_str_width"
-f:close()
-local naive_str_width = assert((loadstring or load)(code))()
+dofile("init.lua")
+
+-- Unfortunately the easiest way of getting naive_str_width without adding
+-- runtime checks is to load layout.lua twice. Luckily it is somewhat self
+-- contained so this shouldn't be a problem.
+local naive_str_width
+do
+    local f = assert(io.open("layout.lua"))
+    local code = f:read("*a"):gsub("\nreturn",
+        "\nreturn naive_str_width --[[") .. "]]"
+    f:close()
+    naive_str_width = assert((loadstring or load)(code))()
+end
 
 local gui = flow.widgets
 
