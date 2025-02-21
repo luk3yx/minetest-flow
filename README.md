@@ -556,7 +556,7 @@ Example:
 ```lua
 local my_gui = flow.make_gui(function(player, ctx)
     return gui.VBox{
-        -- 0 is the start/top, 1 is the bottom/end
+        -- 0 is the top/left, 1 is the bottom/right
         window_position = {x = 0, y = 0},
         window_anchor = {x = 1, y = 1},
 
