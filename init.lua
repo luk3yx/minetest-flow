@@ -1,7 +1,7 @@
 --
--- Luanti formspec layout engine
+-- Flow: Luanti formspec layout engine
 --
--- Copyright © 2022 by luk3yx
+-- Copyright © 2022-2025 by luk3yx
 --
 -- This program is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU Lesser General Public License as published by
@@ -548,7 +548,7 @@ if core.is_singleplayer() then
     local example_form
     core.register_chatcommand("flow-example", {
         privs = {server = true},
-        help = S("Shows an example form a"),
+        help = S("Shows an example form"),
         func = function(name)
             -- Only load example.lua when it's needed
             if not example_form then
