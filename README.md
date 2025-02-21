@@ -542,7 +542,31 @@ end)
 
 You can set `bgcolor = "#123"`, `fbgcolor = "#123"`, and
 `bg_fullscreen = true` on the root element to set a background colour. The
-values for these correspond to the [`bgcolor` formspec element](https://minetest.gitlab.io/minetest/formspec/#bgcolorbgcolorfullscreenfbgcolor).
+values for these correspond to the [`bgcolor` formspec element](https://api.luanti.org/formspec/#bgcolorbgcolorfullscreenfbgcolor).
+
+</details><details>
+<summary><b><code>position[]</code> etc</b></summary>
+
+These values allow the position of the displayed form to be moved around.
+See [the formspec documentation](https://api.luanti.org/formspec/#positionxy)
+for more information. They are especially useful when creating HUDs using flow.
+
+Example:
+
+```lua
+local my_gui = flow.make_gui(function(player, ctx)
+    return gui.VBox{
+        -- 0 is the start/top, 1 is the bottom/end
+        window_position = {x = 0, y = 0},
+        window_anchor = {x = 1, y = 1},
+
+        -- Equivalent to padding[0.1,0.2]
+        window_padding = {x = 0.1, y = 0.2},
+
+        gui.Label{label = "Hello world"},
+    }
+end)
+```
 
 </details><details>
 <summary><b>Rendering to a formspec</b></summary>

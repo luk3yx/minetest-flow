@@ -46,38 +46,64 @@ local function render_ast(node, embedded)
         {type = "size", w = w, h = h},
     }
 
-    -- TODO: Consider a nicer place to put these parameters
-    if node.no_prepend and not embedded then
-        res[#res + 1] = {type = "no_prepend"}
-    end
-    if node.fbgcolor or node.bgcolor or node.bg_fullscreen ~= nil then
-        -- Hack to prevent breaking mods that rely on the old (broken)
-        -- behaviour of fbgcolor
-        if node.fbgcolor == "#08080880" and node.bgcolor == nil and
-                node.bg_fullscreen == nil then
-            node.bg_fullscreen = true
-            node.fbgcolor = nil
+    if not embedded then
+        if node.window_position then
+            res[#res + 1] = {
+                type = "position",
+                x = node.window_position.x,
+                y = node.window_position.y,
+            }
+            node.window_position = nil
+        end
+        if node.window_anchor then
+            res[#res + 1] = {
+                type = "anchor",
+                x = node.window_anchor.x,
+                y = node.window_anchor.y,
+            }
+            node.window_anchor = nil
+        end
+        if node.window_padding then
+            res[#res + 1] = {
+                type = "padding",
+                x = node.window_padding.x,
+                y = node.window_padding.y,
+            }
+            node.window_padding = nil
+        end
+        if node.no_prepend then
+            res[#res + 1] = {type = "no_prepend"}
         end
 
-        res[#res + 1] = {
-            type = "bgcolor",
-            bgcolor = node.bgcolor,
-            fbgcolor = node.fbgcolor,
-            fullscreen = node.bg_fullscreen
-        }
-        node.bgcolor = nil
-        node.fbgcolor = nil
-        node.bg_fullscreen = nil
-    end
+        if node.fbgcolor or node.bgcolor or node.bg_fullscreen ~= nil then
+            -- Hack to prevent breaking mods that rely on the old (broken)
+            -- behaviour of fbgcolor
+            if node.fbgcolor == "#08080880" and node.bgcolor == nil and
+                    node.bg_fullscreen == nil then
+                node.bg_fullscreen = true
+                node.fbgcolor = nil
+            end
 
-    -- Add the root element's background image as a fullscreen one
-    if node.bgimg and not embedded then
-        res[#res + 1] = {
-            type = node.bgimg_middle and "background9" or "background",
-            texture_name = node.bgimg, middle_x = node.bgimg_middle,
-            x = 0, y = 0, w = 0, h = 0, auto_clip = true,
-        }
-        node.bgimg = nil
+            res[#res + 1] = {
+                type = "bgcolor",
+                bgcolor = node.bgcolor,
+                fbgcolor = node.fbgcolor,
+                fullscreen = node.bg_fullscreen
+            }
+            node.bgcolor = nil
+            node.fbgcolor = nil
+            node.bg_fullscreen = nil
+        end
+
+        -- Add the root element's background image as a fullscreen one
+        if node.bgimg then
+            res[#res + 1] = {
+                type = node.bgimg_middle and "background9" or "background",
+                texture_name = node.bgimg, middle_x = node.bgimg_middle,
+                x = 0, y = 0, w = 0, h = 0, auto_clip = true,
+            }
+            node.bgimg = nil
+        end
     end
 
     res[#res + 1] = node
@@ -329,6 +355,11 @@ function Form:show(player, ctx)
 end
 
 function Form:show_hud(player, ctx)
+    if not core.global_exists("hud_fs") then
+        error("[flow] Form:show_hud() requires the hud_fs mod to be " ..
+            "installed!", 2)
+    end
+
     local info = core.get_player_information(player:get_player_name())
     local tree = self:_render(player, ctx or {}, nil, nil, nil,
         info and info.lang_code)
