@@ -622,4 +622,42 @@ end)
 If multiple `on_quit` callbacks are specified in different elements, they will
 all get called.
 
+</details><details>
+<summary><b>Handling enter keypresses in fields</b></summary>
+
+`gui.Field` and `gui.Pwdfield` support an `on_key_enter` callback that gets
+called if enter is pressed:
+
+```lua
+local form = flow.make_gui(function(player, ctx)
+    return gui.VBox{
+        gui.Field{
+            label = "Press enter!",
+            name = "field",
+            on_key_enter = function(player, ctx)
+                core.chat_send_player(player:get_player_name(),
+                    "Field value: " .. dump(ctx.form.field))
+            end,
+
+            -- You can also specify close_on_enter to close the form when enter
+            -- is pressed.
+            close_on_enter = true,
+        },
+    }
+end)
+```
+
+Notes:
+
+ - If you're using this callback, please make sure there's some other way to
+   trigger the enter action (like a button) to support older flow versions and
+   in case I replace this API with a better one in the future.
+ - If you want recent mobile clients to call this callback when editing text,
+   add `enter_after_edit = true` to the field definition.
+ - The similarly named `on_event` gets called whenever the client submits the
+   field to the server, which could be at any time, and is not very useful, but
+   is still supported for compatibility (and there may be uses for it, such as
+   sanitising field values). Be careful not to accidentally use the wrong
+   callback.
+
 </details>

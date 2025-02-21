@@ -200,11 +200,13 @@ local function insert_shorthand_elements(tree)
         if node.type == "container" or node.type == "scroll_container" then
             insert_shorthand_elements(node)
         elseif node.type == "field" then
-            table.insert(tree, i, {
-                type = 'field_close_on_enter',
-                name = node.name,
-                close_on_enter = false,
-            })
+            if not node.close_on_enter then
+                table.insert(tree, i, {
+                    type = 'field_close_on_enter',
+                    name = node.name,
+                    close_on_enter = false,
+                })
+            end
 
             if node.enter_after_edit then
                 table.insert(tree, i, {
@@ -250,9 +252,8 @@ function Form:_render(player, ctx, formspec_version, id1, embedded, lang_code)
     if not id1 or id1 > 1e6 then id1 = 0 end
 
     local tree = render_ast(box, embedded)
-    local callbacks, btn_callbacks, saved_fields, id2 = parse_callbacks(
-        tree, orig_form, id1, embedded, formspec_version
-    )
+    local callbacks, btn_callbacks, saved_fields, id2, on_key_enters =
+        parse_callbacks(tree, orig_form, id1, embedded, formspec_version)
 
     -- This should be after parse_callbacks so it can take advantage of
     -- automatic field naming
@@ -274,6 +275,7 @@ function Form:_render(player, ctx, formspec_version, id1, embedded, lang_code)
         callbacks = callbacks,
         btn_callbacks = btn_callbacks,
         saved_fields = saved_fields,
+        on_key_enters = on_key_enters,
         redraw_if_changed = redraw_if_changed,
         ctx = ctx,
         auto_name_id = id2,
@@ -493,6 +495,17 @@ function fs_process_events(player, form_info, fields)
             if callbacks[field] and callbacks[field](player, ctx) then
                 redraw_fs = true
             end
+        end
+    end
+
+    -- Run on_key_enter callbacks
+    if fields.key_enter and form_info.on_key_enters then
+        local callback = form_info.on_key_enters[fields.key_enter_field]
+        if callback then
+            -- Enter callbacks and button fields can't be sent at the same
+            -- time (except from a hacked client), so make sure they aren't
+            -- both processed at once by returning now.
+            return callback(player, ctx) or redraw_fs
         end
     end
 

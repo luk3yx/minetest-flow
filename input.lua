@@ -155,7 +155,7 @@ local button_types = {
 -- Removes on_event from a formspec_ast tree and returns a callbacks table
 local function parse_callbacks(tree, ctx_form, auto_name_id,
         replace_backgrounds, formspec_version)
-    local callbacks
+    local callbacks, on_key_enters
     local btn_callbacks = {}
     local saved_fields = {}
     local tablecolumn_count = 1
@@ -297,13 +297,32 @@ local function parse_callbacks(tree, ctx_form, auto_name_id,
             node.on_event = nil
         end
 
+        local is_field = node.type == "field" or node.type == "pwdfield"
+        if node.on_key_enter and node_name then
+            if is_field then
+                on_key_enters = on_key_enters or {}
+                if on_key_enters[node_name] then
+                    error(("Multiple on_key_enter callbacks registered for " ..
+                        "elements with the same name (%q)"):format(node_name))
+                end
+                on_key_enters[node_name] = node.on_key_enter
+            else
+                core.log("warning",
+                    "[flow] on_key_enter only works with Field and Pwdfield")
+            end
+            node.on_key_enter = nil
+        elseif is_field and node.close_on_enter then
+            core.log("warning", ("[flow] Field %q has close_on_enter " ..
+                "enabled but no on_key_enter callback."):format(node_name))
+        end
+
         -- Call _after_positioned (used internally for ScrollableVBox)
         if node._after_positioned then
             node:_after_positioned()
             node._after_positioned = nil
         end
     end
-    return callbacks, btn_callbacks, saved_fields, auto_name_id
+    return callbacks, btn_callbacks, saved_fields, auto_name_id, on_key_enters
 end
 
 return parse_callbacks
