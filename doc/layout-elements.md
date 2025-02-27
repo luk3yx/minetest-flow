@@ -135,10 +135,13 @@ elements creates unnecessary containers.
 A tool to allow for ternary-ish conditional widgets:
 
 ```lua
-gui.VBox{
-    gui.Label{ label = "The box below is only present if the boolean is truthy" },
-    the_boolean and gui.Box{ color = "#FF0000" } or gui.Nil{},
-}
+local form = flow.make_gui(function(player, ctx)
+    local the_boolean = false
+    return gui.VBox{
+        gui.Label{label = "The box below is only present if the boolean is truthy"},
+        the_boolean and gui.Box{w = 1, h = 1, color = "#FF0000"} or gui.Nil{},
+    }
+end)
 ```
 
 Use sparingly, flow still has to process each `Nil` object to be able to know to
