@@ -1,0 +1,20 @@
+site_name: Flow Documentation
+docs_dir: doc
+theme: readthedocs
+extra_javascript:
+    - playground-links.js
+markdown_extensions:
+    - footnotes
+nav:
+    - Introduction: index.md
+    - Elements/widgets:
+        - layout-elements.md
+        - All other elements: elements.md
+    - Other features:
+        - styling.md
+        - padding.md
+        - tooltips.md
+        - hiding-elements.md
+        - inventory.md
+        - manual-positioning.md
+        - experimental.md

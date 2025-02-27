@@ -1,0 +1,16 @@
+# Modified from https://gitlab.com/pages/mkdocs/
+
+image: python:3.13-slim
+
+before_script:
+  - pip install mkdocs==1.6.1
+
+pages:
+  stage: deploy
+  script:
+    - mkdocs build --strict --verbose -d public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
