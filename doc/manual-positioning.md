@@ -36,5 +36,5 @@ gui.VBox{
 }
 ```
 
-Note that you cannot nest layouted elements (like `gui.VBox`) inside
+Note that you should not nest layouted elements (like `gui.VBox`) inside
 `gui.Container`.
