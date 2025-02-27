@@ -153,8 +153,8 @@ These utilities likely aren't compatible with flow.
  - [fslib](https://content.luanti.org/packages/LMD/fslib/) is a small mod library that lets you build formspec strings.
  - [Just_Visiting's formspec editor](https://content.luanti.org/packages/Just_Visiting/formspec_editor) is a Minetest (sub)game that lets you edit formspecs and preview them as you go
  - [kuto](https://github.com/TerraQuest-Studios/kuto/) is a formspec library that has some extra widgets/components and has a callback API. Some automatic sizing can be done for buttons.
-   - It may be possible to use kuto's components with flow somehow as they both use formspec_ast internally.
-   - kuto was the the source of the "on_event" function idea.
+    - It may be possible to use kuto's components with flow somehow as they both use formspec_ast internally.
+    - kuto was the the source of the "on_event" function idea.
  - [My web-based formspec editor](https://forum.luanti.org/viewtopic.php?f=14&t=24130) lets you add elements and drag+drop them, however it doesn't support all formspec features.
 
 ## Documentation
