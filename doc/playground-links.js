@@ -36,7 +36,7 @@ function addPlayBtn({el, result, text}) {
     if (text.indexOf("style = {") > 0 || text.indexOf("gui.Style") > 0)
         return;
 
-    if (text.startsWith("gui.")) {
+    if (text.startsWith("gui.") && text.trim().endsWith("}")) {
         addPlaygroundBtn(el, TEMPLATE.replace("%",
             "    return " + text.trim().replaceAll("\n", "\n    ")));
     } else if (/^local (my_gui|form) = flow.make_gui\(function\(player, ctx\)\n/.test(text) &&
