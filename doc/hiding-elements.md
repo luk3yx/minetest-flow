@@ -17,4 +17,4 @@ gui.VBox{
 ## Alternatives
 
 If you don't want hidden elements to take up any space, see the documentation
-for [gui.Nil](layout-elements.md#guinil).
+for [`gui.Nil`](layout-elements.md#guinil).

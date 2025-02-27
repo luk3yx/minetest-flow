@@ -1,4 +1,4 @@
-## Padding, spacing, and backgrounds
+# Padding, spacing, and backgrounds
 
 All elements can have a `padding` value, which will add the specified amount of
 padding around the element. The "root" element of the form (the one returned by

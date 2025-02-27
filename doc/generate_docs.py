@@ -169,7 +169,7 @@ if __name__ == '__main__':
     elements = fetch_elements()
     print('Done.')
 
-    with open('doc/elements.md', 'w') as f:
+    with open('elements.md', 'w') as f:
         f.write('# Auto-generated elements list\n\n')
         f.write('This is probably broken.')
         for element_name, variants in elements.items():

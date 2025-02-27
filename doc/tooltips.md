@@ -9,3 +9,7 @@ gui.Image{
     tooltip = "Air",
 }
 ```
+
+There is also a [`gui.Tooltip`](elements.md#guitooltip) element which lets you
+change the background colour of the tooltip. As with `gui.Style`, it is
+invisible and won't affect padding.
