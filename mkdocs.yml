@@ -18,3 +18,7 @@ nav:
         - inventory.md
         - manual-positioning.md
         - experimental.md
+    - Development tools:
+        - Flow Inspector: https://content.luanti.org/packages/luk3yx/flow_inspector/
+        - Flow Playground: https://luk3yx.gitlab.io/minetest-flow-playground/
+        - Snippets: https://content.luanti.org/packages/luk3yx/snippets/
