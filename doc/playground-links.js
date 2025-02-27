@@ -28,17 +28,33 @@ end)
 form:show(core.get_player_by_name("playground"))
 `.trim();
 
+const unsupported = [
+    "style = {",
+    "gui.Style",
+    "tooltip = ",
+    "on_key_enter = ",
+    "gui.AnimatedImage",
+    "gui.ButtonU", // ButtonURL
+    "gui.Hypertext",
+    "gui.Model",
+    "gui.Pwdfield",
+    "gui.Table",
+    "gui.Tooltip",
+];
+
 function addPlayBtn({el, result, text}) {
     if (!el.classList.contains("language-lua"))
         return;
 
-    // The playground does not support styling
-    if (text.indexOf("style = {") > 0 || text.indexOf("gui.Style") > 0)
-        return;
+    // Do not show the play button for unsupported features
+    for (let s of unsupported)
+        if (text.indexOf(s) >= 0)
+            return;
 
     if (text.startsWith("gui.") && text.trim().endsWith("}")) {
+        const code = text.replace(/, ...}/g, ', "Second value", "Value 3", "..."}');
         addPlaygroundBtn(el, TEMPLATE.replace("%",
-            "    return " + text.trim().replaceAll("\n", "\n    ")));
+            "    return " + code.trim().replaceAll("\n", "\n    ")));
     } else if (/^local (my_gui|form) = flow.make_gui\(function\(player, ctx\)\n/.test(text) &&
             text.trim().endsWith("\nend)")) {
         addPlaygroundBtn(el, TEMPLATE.replace("%",
