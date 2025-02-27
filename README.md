@@ -136,6 +136,8 @@ gui.Button{
 }
 ```
 
+If you're using a form as a HUD, you must call `form:show_hud` to update it.
+
 ### Security
 
 Flow ignores potentially malicious formspec input from clients, such as
@@ -545,28 +547,39 @@ You can set `bgcolor = "#123"`, `fbgcolor = "#123"`, and
 values for these correspond to the [`bgcolor` formspec element](https://api.luanti.org/formspec/#bgcolorbgcolorfullscreenfbgcolor).
 
 </details><details>
-<summary><b><code>position[]</code> etc</b></summary>
+<summary><b>Putting the form somewhere else on the screen (likely required for most HUDs)</b></summary>
 
-These values allow the position of the displayed form to be moved around.
-See [the formspec documentation](https://api.luanti.org/formspec/#positionxy)
-for more information. They are especially useful when creating HUDs using flow.
+These values allow the position of the displayed form to be moved around and
+adjust how it is scaled.
 
 Example:
 
 ```lua
 local my_gui = flow.make_gui(function(player, ctx)
     return gui.VBox{
+        -- Adjusts where on the screen the form/HUD is rendered.
         -- 0 is the top/left, 1 is the bottom/right
-        window_position = {x = 0, y = 0},
+        -- You probably want to set `window_position` and `window_anchor` to
+        -- the same value.
+        -- This puts the form in the bottom-right corner.
+        window_position = {x = 1, y = 1},
         window_anchor = {x = 1, y = 1},
 
-        -- Equivalent to padding[0.1,0.2]
+        -- Equivalent to padding[0.1,0.2], adjusts the minimum amount of
+        -- padding around the form in terms of total screen size. If the form
+        -- is too big, it will be scaled down
+        -- Default for formspecs: {x = 0.05, y = 0.05} (i.e. 5% of screen size)
+        -- HUDs default to a hardcoded pixel size, if you want them to roughly
+        -- line up with formspecs then you may explicitly specify this.
         window_padding = {x = 0.1, y = 0.2},
 
         gui.Label{label = "Hello world"},
     }
 end)
 ```
+
+See [the formspec documentation](https://api.luanti.org/formspec/#positionxy)
+for more information.
 
 </details><details>
 <summary><b>Rendering to a formspec</b></summary>
