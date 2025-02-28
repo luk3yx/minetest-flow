@@ -97,7 +97,7 @@ my_gui:show_hud(player)
 my_gui:close_hud(player)
 ```
 
-### Updating forms
+## Updating forms
 
 If some data displayed inside a form changes (for example a timer or progress
 indicator), you can use `form:update` to update the form without resetting
@@ -138,7 +138,7 @@ gui.Button{
 
 If you're using a form as a HUD, you must call `form:show_hud` to update it.
 
-### Security
+## Security
 
 Flow ignores potentially malicious formspec input from clients, such as
 buttons or fields that haven't been shown to the client, out-of-bounds dropdown
