@@ -105,9 +105,32 @@ end
 
 local size_getters = {}
 
+local function parse_v2f(str, default_x, default_y)
+    if str and type(str) == "string" then
+        local x, y = str:match("^%s-(%d+)%s-,%s-(%d+)%s-$")
+        return tonumber(x) or default_x, tonumber(y) or default_y
+    end
+
+    return default_x, default_y
+end
+
 local function get_and_fill_in_sizes(node)
     if node.type == "list" then
-        return node.w * 1.25 - 0.25, node.h * 1.25 - 0.25
+        if node._flow_w and node._flow_h then
+            return node._flow_w, node._flow_h
+        end
+
+        local style = node.style
+        local slot_w, slot_h = parse_v2f(style and style.size, 1, 1)
+        local spacing_w, spacing_h = parse_v2f(style and style.spacing, 0.25, 0.25)
+
+        local w = node.w * (slot_w + spacing_w) - spacing_w
+        local h = node.h * (slot_h + spacing_h) - spacing_h
+
+        -- Cache calculated size so we don't have to parse the list style again
+        node._flow_w, node._flow_h = w, h
+
+        return w, h
     end
 
     if node.w and node.h then

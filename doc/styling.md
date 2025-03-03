@@ -45,8 +45,8 @@ See [the Luanti documentation](https://api.luanti.org/formspec/#styling-formspec
 for a list of valid property names and values. Flow accepts numbers and
 booleans as property values where applicable.
 
-**Warning:** Flow does not currently support styles that change the element
-size, like `font_size` for labels and `size` for lists.
+**Warning:** Styles that change the size of the element are currently only
+supported on `gui.List` (notably `font_size` on labels won't work properly)
 
 ## Separate style elements
 
@@ -70,3 +70,7 @@ gui.Button{
 ```
 
 The `Style` and `StyleType` elements are invisible and won't affect padding.
+
+**Warning:** `gui.Style` and `gui.StyleType` do not support *any* styles that
+change the element size, such as `font_size` for labels and `size` and `spacing`
+lists.

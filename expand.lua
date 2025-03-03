@@ -17,7 +17,8 @@
 -- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --
 
-local DEFAULT_SPACING, LABEL_OFFSET, invisible_elems = ...
+local DEFAULT_SPACING, LABEL_OFFSET, get_and_fill_in_sizes,
+    invisible_elems = ...
 local align_types = {}
 
 function align_types.fill(node, x, w, extra_space)
@@ -147,8 +148,7 @@ local function expand(box)
             if not invisible_elems[node.type] then
                 local width, height = node.w or 0, node.h or 0
                 if node.type == "list" then
-                    width = width * 1.25 - 0.25
-                    height = height * 1.25 - 0.25
+                    width, height = get_and_fill_in_sizes(node)
                 end
                 local padding_x2 = (node.padding or 0) * 2
                 align_types[node.align_h or "auto"](node, "x", "w", box.w -
@@ -191,8 +191,10 @@ local function expand(box)
             end
 
             if node.type == "list" then
-                width = width * 1.25 - 0.25
-                height = height * 1.25 - 0.25
+                width, height = get_and_fill_in_sizes(node)
+                if y == "x" then
+                    width, height = height, width
+                end
             end
             free_space = free_space - width - (node.padding or 0) * 2 -
                 (y == "x" and node._padding_top or 0)
