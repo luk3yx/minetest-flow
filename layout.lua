@@ -122,7 +122,9 @@ local function get_and_fill_in_sizes(node)
 
         local style = node.style
         local slot_w, slot_h = parse_v2f(style and style.size, 1, 1)
-        local spacing_w, spacing_h = parse_v2f(style and style.spacing, 0.25, 0.25)
+        local spacing_w, spacing_h = parse_v2f(
+            style and style.spacing, 0.25, 0.25
+        )
 
         local w = node.w * (slot_w + spacing_w) - spacing_w
         local h = node.h * (slot_h + spacing_h) - spacing_h
