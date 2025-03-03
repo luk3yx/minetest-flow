@@ -22,11 +22,11 @@ flow = {}
 local modpath = core.get_modpath("flow")
 
 local apply_padding, get_and_fill_in_sizes, set_current_lang,
-    DEFAULT_SPACING, LABEL_OFFSET, invisible_elems =
+    DEFAULT_SPACING, LABEL_HEIGHT, invisible_elems =
     dofile(modpath .. "/layout.lua")
 
 local expand = assert(loadfile(modpath .. "/expand.lua"))(
-    DEFAULT_SPACING, LABEL_OFFSET, get_and_fill_in_sizes, invisible_elems
+    DEFAULT_SPACING, LABEL_HEIGHT, get_and_fill_in_sizes, invisible_elems
 )
 
 local parse_callbacks = dofile(modpath .. "/input.lua")

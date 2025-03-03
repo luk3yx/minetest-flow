@@ -17,7 +17,7 @@
 -- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --
 
-local DEFAULT_SPACING, LABEL_OFFSET, get_and_fill_in_sizes,
+local DEFAULT_SPACING, LABEL_HEIGHT, get_and_fill_in_sizes,
     invisible_elems = ...
 local align_types = {}
 
@@ -75,7 +75,7 @@ function align_types.fill(node, x, w, extra_space)
             name = "_#", label = "",
         }
 
-        node.y = node.y - LABEL_OFFSET
+        node.y = node.y - (node._flow_font_height or LABEL_HEIGHT) / 2
         node.label = nil
         node.style = nil
         node._label_hack = true

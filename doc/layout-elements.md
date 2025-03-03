@@ -6,6 +6,10 @@ All examples will assume that this line exists.
 These elements are used to lay out elements in the form. They don't have a
 direct equivalent in formspecs.
 
+**Warning:** The below elements (except `gui.Spacer`) do not support `w` and
+`h` properties and will break in weird ways if you try and use them. Use
+`min_w` and `min_h` instead.
+
 ## `gui.VBox`
 
 A vertical box, similar to a VBox in GTK. Elements inside a VBox are stacked

@@ -68,7 +68,6 @@ local function naive_str_width(str)
 end
 
 local LABEL_HEIGHT = 0.4
-local LABEL_OFFSET = LABEL_HEIGHT / 2
 local CHAR_WIDTH = 0.21
 
 -- The "current_lang" variable isn't ideal but means that the language will be
@@ -93,14 +92,29 @@ local function get_lines_size(lines)
     return w, LABEL_HEIGHT * #lines
 end
 
-local function get_label_size(label)
+local ASTERISK = ("*"):byte()
+local function parse_font_size(str)
+    -- Only support *1.1 etc for now, I don't know if the other formats are
+    -- used
+    if str and type(str) == "string" and str:byte(1) == ASTERISK then
+        return tonumber(str:sub(2)) or 1
+    end
+    return 1
+end
+
+local function get_label_size(label, style, line_spacing)
     label = label or ""
     if current_lang and current_lang ~= "" and current_lang ~= "en" then
         label = get_translated_string(current_lang, label)
     end
 
     local longest_line_width, line_count = naive_str_width(label)
-    return longest_line_width * CHAR_WIDTH, line_count * LABEL_HEIGHT
+    local font_size_frac = parse_font_size(style and style.font_size)
+
+    local font_height = font_size_frac * LABEL_HEIGHT
+    return longest_line_width * CHAR_WIDTH * font_size_frac,
+        font_height + (line_count - 1) * (line_spacing or font_height),
+        font_height
 end
 
 local size_getters = {}
@@ -160,13 +174,16 @@ end
 size_getters.scroll_container = size_getters.container
 
 function size_getters.label(node)
-    local w, h = get_label_size(node.label)
-    return w, LABEL_HEIGHT + (h - LABEL_HEIGHT) * 1.25
+    -- Labels always have a distance of 0.5 between each line regardless of the
+    -- font size
+    local w, h, font_height = get_label_size(node.label, node.style, 0.5)
+    node._flow_font_height = font_height
+    return w, h
 end
 
 local MIN_BUTTON_HEIGHT = 0.8
 function size_getters.button(node)
-    local x, y = get_label_size(node.label)
+    local x, y = get_label_size(node.label, node.style)
     return max(x, MIN_BUTTON_HEIGHT * 2), max(y, MIN_BUTTON_HEIGHT)
 end
 
@@ -177,6 +194,7 @@ size_getters.item_image_button = size_getters.button
 size_getters.button_url = size_getters.button
 
 function size_getters.field(node)
+    -- Field labels ignore the "font_size" style
     local label_w, label_h = get_label_size(node.label)
 
     -- This is done in apply_padding as well but the label size has already
@@ -185,7 +203,7 @@ function size_getters.field(node)
         node._padding_top = label_h
     end
 
-    local w, h = get_label_size(node.default)
+    local w, h = get_label_size(node.default, node.style)
     return max(w, label_w, 3), max(h, MIN_BUTTON_HEIGHT)
 end
 size_getters.pwdfield = size_getters.field
@@ -205,6 +223,7 @@ function size_getters.dropdown(node)
 end
 
 function size_getters.checkbox(node)
+    -- Checkboxes don't support font_size
     local w, h = get_label_size(node.label)
     return w + 0.4, h
 end
@@ -217,7 +236,7 @@ local function apply_padding(node, x, y)
     -- Labels are positioned from the centre of the first line and checkboxes
     -- are positioned from the centre.
     if node.type == "label" then
-        y = y + LABEL_OFFSET
+        y = y + (node._flow_font_height or LABEL_HEIGHT) / 2
     elseif node.type == "checkbox" then
         y = y + h / 2
     elseif field_elems[node.type] and not node._padding_top and node.label and
@@ -323,4 +342,4 @@ local function set_current_lang(lang)
 end
 
 return apply_padding, get_and_fill_in_sizes, set_current_lang,
-    DEFAULT_SPACING, LABEL_OFFSET, invisible_elems
+    DEFAULT_SPACING, LABEL_HEIGHT, invisible_elems
