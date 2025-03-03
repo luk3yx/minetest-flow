@@ -69,5 +69,5 @@ gui.Button{
 The `Style` and `StyleType` elements are invisible and won't affect padding.
 
 **Warning:** `gui.Style` and `gui.StyleType` do not support styles that change
-the element size, such as `font_size` for labels and `size` and `spacing`
+the element size, such as `font_size` for labels and `size`/`spacing` for
 lists. Use the inline syntax instead for these styles.
