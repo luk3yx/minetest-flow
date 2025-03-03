@@ -41,6 +41,13 @@ end)
 Note that this may inadvertently reset styles on subsequent elements if used on
 elements without a name due to formspec limitations.
 
+See [the Luanti documentation](https://api.luanti.org/formspec/#styling-formspecs)
+for a list of valid property names and values. Flow accepts numbers and
+booleans as property values where applicable.
+
+**Warning:** Flow does not currently support styles that change the element
+size, like `font_size` for labels and `size` for lists.
+
 ## Separate style elements
 
 Alternatively, you can use the `gui.Style` and `gui.StyleType` elements if you
