@@ -92,11 +92,11 @@ local function get_lines_size(lines)
     return w, LABEL_HEIGHT * #lines
 end
 
-local ASTERISK = ("*"):byte()
+local ASTERISK = byte("*")
 local function parse_font_size(str)
     -- Only support *1.1 etc for now, I don't know if the other formats are
     -- used
-    if str and type(str) == "string" and str:byte(1) == ASTERISK then
+    if str and type(str) == "string" and byte(str, 1) == ASTERISK then
         return tonumber(str:sub(2)) or 1
     end
     return 1
