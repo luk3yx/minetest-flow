@@ -176,7 +176,15 @@ size_getters.scroll_container = size_getters.container
 function size_getters.label(node)
     -- Labels always have a distance of 0.5 between each line regardless of the
     -- font size
-    local w, h, font_height = get_label_size(node.label, node.style, 0.5)
+
+    local style = node.style
+    if node.h and style and style.font_size then
+        core.log("warning", "[flow] Labels with a fixed height set will be " ..
+            "positioned as if font_size was not specified for backwards " ..
+            "compatibility reasons.")
+        style = nil
+    end
+    local w, h, font_height = get_label_size(node.label, style, 0.5)
     node._flow_font_height = font_height
     return w, h
 end
