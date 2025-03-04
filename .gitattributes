@@ -2,3 +2,4 @@
 doc         export-ignore
 *.py        export-ignore
 mkdocs.yml  export-ignore
+test.lua    export-ignore
