@@ -89,9 +89,8 @@ end
 local change_ctx = ...
 
 return function(self, fields)
-    local player = fields.player
     local name = fields.name
-    local parent_ctx = flow.get_context()
+    local parent_ctx, player = flow.get_context()
     if name == nil then
         -- Don't prefix anything if name is unspecified
         return self._build(player, parent_ctx)

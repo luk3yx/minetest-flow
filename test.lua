@@ -977,7 +977,8 @@ describe("Flow", function()
     end)
 
     describe("Flow.embed", function()
-        local embedded_form = flow.make_gui(function(_, x)
+        local embedded_form = flow.make_gui(function(p, x)
+            assert.equals("test", p:get_player_name())
             return gui.VBox{
                 gui.Label{label = "This is the embedded form!"},
                 gui.Field{name = "test2"},
@@ -998,7 +999,7 @@ describe("Flow", function()
             test_render(function(p, _)
                 return gui.HBox{
                     gui.Label{label = "asdft"},
-                    embedded_form:embed{player = p, name = "theprefix"},
+                    embedded_form:embed{name = "theprefix"},
                     gui.Label{label = "ffaksksdf"}
                 }
             end, gui.HBox{
@@ -1016,7 +1017,7 @@ describe("Flow", function()
             test_render(function(p, _)
                 return gui.HBox{
                     gui.Label{label = "asdft"},
-                    embedded_form:embed{player = p},
+                    embedded_form:embed{},
                     gui.Label{label = "ffaksksdf"}
                 }
             end, gui.HBox{

@@ -98,9 +98,8 @@ local parent_form = flow.make_gui(function(player, ctx)
     return gui.VBox{
         gui.Label{label = "Hello world"},
         other_form:embed{
-            -- Passing in the player is required for now. You must use the same
-            -- player object that you get sent by flow to avoid breakages in
-            -- the future if this becomes optional.
+            -- You can optionally pass in the player object to support older
+            -- versions of flow (before 2025-06-17).
             player = player,
 
             -- A name for the embed. If this is specified, the embedded form
@@ -177,3 +176,27 @@ Notes:
    is still supported for compatibility (and there may be uses for it, such as
    sanitising field values). Be careful not to accidentally use the wrong
    callback.
+
+## Getting a reference to the current player and context
+
+If you're making a custom widget, it might be useful to get a reference to
+`ctx` and `player` so you don't have to pass them in manually.
+
+```lua
+local function HelloWorld(def)
+    local ctx, player = flow.get_context()
+    return gui.Label{
+        label = "Hello, " .. player:get_player_name() .. "!\n" ..
+            "some_value=" .. ctx.some_value,
+        style = def.style,
+    }
+end
+
+local form = flow.make_gui(function(player, ctx)
+    ctx.some_value = 123
+    return HelloWorld{style = {font_size = "*2"}}
+end)
+```
+
+`flow.get_context()` will error when called outside a build function (as you
+should not normally do this).
