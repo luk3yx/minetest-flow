@@ -149,7 +149,7 @@ local function render(build_func, ctx, fs_ver)
     end
 
     local form = flow.make_gui(build_func)
-    return form:_render({get_player_name = "test"}, ctx or {}, fs_ver)
+    return form:_render(stub_player("test"), ctx or {}, fs_ver)
 end
 
 local function test_render(build_func, output, description)
