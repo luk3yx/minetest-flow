@@ -113,12 +113,12 @@ end
 
 local Form = {}
 
-local current_ctx
+local current_ctx, current_player
 function flow.get_context()
     if not current_ctx then
         error("get_context() was called outside of a GUI function!", 2)
     end
-    return current_ctx
+    return current_ctx, current_player
 end
 
 -- Returns the new index of the affected element
@@ -263,8 +263,10 @@ function Form:_render(player, ctx, formspec_version, id1, embedded, lang_code)
     ctx.form = wrapped_form
 
     gui.formspec_version = formspec_version or 0
+    current_player = player
     current_ctx = ctx
     local box = self._build(player, ctx)
+    current_player = nil
     current_ctx = nil
     gui.formspec_version = 0
 
