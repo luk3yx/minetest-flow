@@ -200,3 +200,24 @@ end)
 
 `flow.get_context()` will error when called outside a build function (as you
 should not normally do this).
+
+## `gui.Flow` container
+
+`gui.Flow` is a fixed-width container that wraps items around if they don't
+fit. Unlike other elements, you must specify a width, and some options like
+`min_w` and `padding` aren't supported.
+
+This is similar to GTK's `FlowBox`, but with a lot fewer features.
+
+```lua
+gui.Flow{
+    -- Fits 3 items
+    w = 3 * (1 + 0.2),
+
+    gui.Image{w = 1, h = 1, texture_name = "default_mese_crystal.png"},
+    gui.Image{w = 1, h = 1, texture_name = "default_mese_crystal.png"},
+    gui.Image{w = 1, h = 1, texture_name = "default_mese_crystal.png"},
+    gui.Image{w = 1, h = 1, texture_name = "default_mese_crystal.png"},
+    gui.Image{w = 1, h = 1, texture_name = "default_mese_crystal.png"},
+}
+```
