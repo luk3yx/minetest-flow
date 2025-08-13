@@ -36,7 +36,8 @@ local function handle_popovers(box, node)
 
     if node.type == "scroll_container" then
         local ctx = flow.get_context()
-        local offset = (ctx.form[node.scrollbar_name] or 0) * (node.scroll_factor or 0.1)
+        local offset = (ctx.form[node.scrollbar_name] or 0) *
+            (node.scroll_factor or 0.1)
         if node.orientation == "horizontal" then
             offset_x = offset_x - offset
         else
@@ -51,7 +52,9 @@ local function handle_popovers(box, node)
     box.on_close_popover = node.on_close_popover
 
     expand(popover)
-    popover = nil -- Reduce the impact of API misuse
+
+    -- Reduce the impact of API misuse
+    node.popover = nil
     node.on_close_popover = nil
 end
 
