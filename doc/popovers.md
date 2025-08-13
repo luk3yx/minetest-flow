@@ -15,57 +15,66 @@ ensure that you do this yourself like in the example.
 See the below example for details on how to use the API:
 
 ```lua
-gui.Stack{
-    gui.Button{
-        label = "Open popover",
+gui.VBox{
+    -- Some padding is added for the purposes of the demo so that the popup
+    -- isn't off-screen
+    padding = 3,
+    gui.Label{label = "Popover demo:"},
 
-        -- When the popover button is clicked, open the popover
-        on_event = function(player, ctx)
-            ctx.show_popover = true
+    gui.Stack{
+        gui.Button{
+            label = "Open popover",
+
+            -- When the popover button is clicked, open the popover
+            on_event = function(player, ctx)
+                ctx.show_popover = true
+                return true
+            end,
+        },
+
+        -- The actual element to overlay
+        -- "popover" is set to the gui.VBox element if (and only if)
+        -- ctx.show_popover is true, otherwise it's nil so no popover is shown.
+        popover = ctx.show_popover and gui.VBox{
+            -- Specifying padding and bgcolor is optional, but is probably a
+            -- good idea since flow doesn't do any styling on its own.
+            padding = 0.2,
+            bgcolor = "#222e",
+
+            -- "anchor" specifies how the popover is positioned relative to the
+            -- parent, and can be "bottom" (default), "top", "left", or "right".
+            anchor = ctx.form.anchor,
+
+            -- align_h and align_v align the popover according to its parent
+            -- element. You only need to specify align_h for
+            -- anchor = "top"/"bottom" or align_v for anchor = "left"/"right",
+            -- this example specifies both so that it can demonstrate switching
+            -- between different anchor types.
+            align_h = "fill",
+            align_v = "center",
+
+            -- Popover contents
+            gui.Label{label = "Hi there!"},
+            gui.Dropdown{
+                name = "anchor",
+                items = {
+                    "bottom",
+                    "top",
+                    "left",
+                    "right",
+                },
+            },
+        } or nil,
+
+        -- Clicking outside the popover will call this function, which should
+        -- probably close the popover.
+        on_close_popover = function(player, ctx)
+            ctx.show_popover = false
             return true
         end,
     },
 
-    -- The actual element to overlay
-    -- "popover" is set to the gui.VBox element if (and only if)
-    -- ctx.show_popover is true, otherwise it's nil so no popover is shown.
-    popover = ctx.show_popover and gui.VBox{
-        -- Specifying padding and bgcolor is optional, but is probably a good
-        -- idea since flow doesn't do any styling on its own.
-        padding = 0.2,
-        bgcolor = "#222e",
-
-        -- "anchor" specifies how the popover is positioned relative to the
-        -- parent, and can be "bottom" (default), "top", "left", or "right".
-        anchor = ctx.form.anchor,
-
-        -- align_h and align_v align the popover according to its parent
-        -- element. You only need to specify align_h for
-        -- anchor = "top"/"bottom" or align_v for anchor = "left"/"right", this
-        -- example specifies both so that it can demonstrate switching between
-        -- different anchor types.
-        align_h = "fill",
-        align_v = "center",
-
-        -- Popover contents
-        gui.Label{label = "Hi there!"},
-        gui.Dropdown{
-            name = "anchor",
-            items = {
-                "bottom",
-                "top",
-                "left",
-                "right",
-            },
-        },
-    } or nil,
-
-    -- Clicking outside the popover will call this function, which should
-    -- probably close the popover.
-    on_close_popover = function(player, ctx)
-        ctx.show_popover = false
-        return true
-    end,
+    gui.Label{label = "After popover button"},
 }
 ```
 
@@ -80,3 +89,4 @@ There are some restrictions on popovers:
  - Players can still use tab to interact with things behind the popover,
    despite being unable to use their mouse to do so.
  - You cannot show popovers inside of other popovers.
+ - Popovers cannot be on the root element.
