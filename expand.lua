@@ -17,8 +17,8 @@
 -- along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --
 
-local DEFAULT_SPACING, LABEL_HEIGHT, get_and_fill_in_sizes,
-    invisible_elems = ...
+local DEFAULT_SPACING, LABEL_HEIGHT, apply_padding, get_and_fill_in_sizes,
+    invisible_elems, modpath = ...
 local align_types = {}
 
 function align_types.fill(node, x, w, extra_space)
@@ -132,7 +132,7 @@ function align_types.auto(node, x, w, extra_space, cross)
     end
 end
 
-local expand_child_boxes
+local expand_child_boxes, handle_popovers
 local function expand(box)
     local x, w, align_h, y, h, align_v
     local box_type = box.type
@@ -164,6 +164,7 @@ local function expand(box)
                 node.w = box.w
             end
             expand(node)
+            handle_popovers(box, node)
         end
         return
     elseif box_type == "padding" then
@@ -256,7 +257,13 @@ function expand_child_boxes(box)
         else
             expand(node)
         end
+
+        handle_popovers(box, node)
     end
 end
+
+handle_popovers = assert(loadfile(modpath .. "/popover.lua"))(
+    align_types, apply_padding, get_and_fill_in_sizes, expand
+)
 
 return expand

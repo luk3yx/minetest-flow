@@ -26,7 +26,8 @@ local apply_padding, get_and_fill_in_sizes, set_current_lang,
     dofile(modpath .. "/layout.lua")
 
 local expand = assert(loadfile(modpath .. "/expand.lua"))(
-    DEFAULT_SPACING, LABEL_HEIGHT, get_and_fill_in_sizes, invisible_elems
+    DEFAULT_SPACING, LABEL_HEIGHT, apply_padding, get_and_fill_in_sizes,
+    invisible_elems, modpath
 )
 
 local parse_callbacks = dofile(modpath .. "/input.lua")
@@ -107,6 +108,25 @@ local function render_ast(node, embedded)
     end
 
     res[#res + 1] = node
+    if node.popover and node.type == "container" then
+        node.popover.x = node.popover.x + node.x
+        node.popover.y = node.popover.y + node.y
+
+        res[#res + 1] = {
+            type = "image_button",
+            x = -99,
+            y = -99,
+            w = 999,
+            h = 999,
+            drawborder = false,
+            noclip = true,
+            on_event = node.on_close_popover,
+        }
+        res[#res + 1] = node.popover
+
+        assert(not node.popover.popover,
+            "Nested popovers are not supported")
+    end
 
     return res
 end
@@ -266,9 +286,6 @@ function Form:_render(player, ctx, formspec_version, id1, embedded, lang_code)
     current_player = player
     current_ctx = ctx
     local box = self._build(player, ctx)
-    current_player = nil
-    current_ctx = nil
-    gui.formspec_version = 0
 
     -- Restore the original ctx.form
     assert(ctx.form == wrapped_form,
@@ -280,6 +297,11 @@ function Form:_render(player, ctx, formspec_version, id1, embedded, lang_code)
     if not id1 or id1 > 1e6 then id1 = 0 end
 
     local tree = render_ast(box, embedded)
+
+    current_player = nil
+    current_ctx = nil
+    gui.formspec_version = 0
+
     local callbacks, btn_callbacks, saved_fields, id2, on_key_enters =
         parse_callbacks(tree, orig_form, id1, embedded, formspec_version)
 
