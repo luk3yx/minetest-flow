@@ -49,7 +49,7 @@ gui.VBox{
             -- element. You only need to specify align_h for
             -- side = "top"/"bottom" or align_v for side = "left"/"right",
             -- this example specifies both so that it can demonstrate switching
-            -- between different anchor types.
+            -- between different sides.
             align_h = "fill",
             align_v = "center",
 
