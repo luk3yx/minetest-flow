@@ -34,17 +34,17 @@ local function handle_popovers(box, node)
         local p_w, p_h = apply_padding(popover, 0, 0)
         local n_w, n_h = get_and_fill_in_sizes(node)
 
-        if popover.anchor == "top" then
+        if popover.side == "top" then
             offset_y = offset_y - p_h
-        elseif popover.anchor == "left" then
+        elseif popover.side == "left" then
             offset_x = offset_x - p_w
-        elseif popover.anchor == "right" then
+        elseif popover.side == "right" then
             offset_x = offset_x + n_w
         else
             offset_y = offset_y + n_h
         end
 
-        if popover.anchor == "left" or popover.anchor == "right" then
+        if popover.side == "left" or popover.side == "right" then
             align_types[popover.align_v or "auto"](popover, "y", "h", n_h - p_h)
         else
             align_types[popover.align_h or "auto"](popover, "x", "w", n_w - p_w)

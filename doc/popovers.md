@@ -41,13 +41,13 @@ gui.VBox{
             padding = 0.2,
             bgcolor = "#222e",
 
-            -- "anchor" specifies how the popover is positioned relative to the
+            -- "side" specifies how the popover is positioned relative to the
             -- parent, and can be "bottom" (default), "top", "left", or "right".
-            anchor = ctx.form.anchor,
+            side = ctx.form.side,
 
             -- align_h and align_v align the popover according to its parent
             -- element. You only need to specify align_h for
-            -- anchor = "top"/"bottom" or align_v for anchor = "left"/"right",
+            -- side = "top"/"bottom" or align_v for side = "left"/"right",
             -- this example specifies both so that it can demonstrate switching
             -- between different anchor types.
             align_h = "fill",
@@ -56,7 +56,7 @@ gui.VBox{
             -- Popover contents
             gui.Label{label = "Hi there!"},
             gui.Dropdown{
-                name = "anchor",
+                name = "side",
                 items = {
                     "bottom",
                     "top",
