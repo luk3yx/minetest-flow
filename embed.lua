@@ -79,6 +79,9 @@ local function embed_add_prefix(node, name, prefix)
     if node.on_quit then
         node.on_quit = embed_wrap_callback_func(node.on_quit, name, prefix)
     end
+    if node.on_close_popover then
+        node.on_close_popover = embed_wrap_callback_func(node.on_close_popover, name, prefix)
+    end
 
     -- Recurse to child nodes
     for _, child in ipairs(node) do
