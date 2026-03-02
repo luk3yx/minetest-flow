@@ -84,6 +84,9 @@ local function embed_add_prefix(node, name, prefix)
     for _, child in ipairs(node) do
         embed_add_prefix(child, name, prefix)
     end
+    if node.popover then
+        embed_add_prefix(node.popover, name, prefix)
+    end
 end
 
 local change_ctx = ...
