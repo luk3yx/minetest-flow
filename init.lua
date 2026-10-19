@@ -410,7 +410,7 @@ end
 local fs_process_events
 
 -- Prevent collisions in forms, but also ensure they don't happen across
--- mutliple embedded forms within a single parent.
+-- multiple embedded forms within a single parent.
 -- Unique per-user to prevent players from making the counter wrap around for
 -- other players.
 local render_to_formspec_auto_name_ids = {}

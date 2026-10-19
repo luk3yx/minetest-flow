@@ -247,7 +247,7 @@ local function parse_callbacks(tree, ctx_form, auto_name_id,
                     node[value_field] = value
                 end
 
-                -- Add the corresponding value transformer transformer to
+                -- Add the corresponding value transformer to
                 -- saved_fields
                 local get_transformer = field_value_transformers[node.type]
                 saved_fields[node_name] = get_transformer and
