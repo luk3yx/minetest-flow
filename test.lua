@@ -23,7 +23,7 @@
 _G.FORMSPEC_AST_PATH = '../formspec_ast'
 dofile(FORMSPEC_AST_PATH .. '/init.lua')
 
--- Stub Minetest API
+-- Stub Luanti API
 _G.core = {}
 
 function core.is_yes(str)
@@ -56,7 +56,7 @@ function core.get_translator(modname)
     return function(str) return str end
 end
 
--- Stub minetest player api
+-- Stub Luanti player api
 local function stub_player(name)
     assert(type(name) == "string")
     local self = {}

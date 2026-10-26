@@ -201,7 +201,7 @@ local function parse_callbacks(tree, ctx_form, auto_name_id,
                 node.type = "image"
             end
         elseif node.type == "scroll_container" then
-            -- Work around a Minetest bug with scroll containers not scrolling
+            -- Work around a Luanti bug with scroll containers not scrolling
             -- backgrounds.
             replace_backgrounds = true
         end
