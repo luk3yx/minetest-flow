@@ -13,7 +13,7 @@ sfinv.
 local example_inventory = flow.make_gui(function (player, context)
     return gui.Label{ label = "Inventory goes here!" }
 end)
-minetest.register_on_joinplayer(function(player)
+core.register_on_joinplayer(function(player)
     example_inventory:set_as_inventory_for(player)
 end)
 ```
