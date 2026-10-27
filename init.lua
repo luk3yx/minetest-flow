@@ -208,6 +208,24 @@ local function insert_shorthand_elements(tree)
     for i = #tree, 1, -1 do
         local node = tree[i]
 
+        -- Insert tooltips
+        if node.tooltip then
+            if node.name then
+                table.insert(tree, i + 1, {
+                    type = "tooltip",
+                    gui_element_name = node.name,
+                    tooltip_text = node.tooltip,
+                })
+            else
+                local w, h = get_and_fill_in_sizes(node)
+                table.insert(tree, i + 1, {
+                    type = "tooltip",
+                    x = node.x, y = node.y, w = w, h = h,
+                    tooltip_text = node.tooltip,
+                })
+            end
+        end
+
         -- Insert styles
         if node.style then
             local props = node.style
@@ -222,24 +240,6 @@ local function insert_shorthand_elements(tree)
             for _, substyle in ipairs(node.style) do
                 next_idx = insert_style_elem(tree, next_idx, node,
                     extract_props(substyle), substyle.sel:split(","))
-            end
-        end
-
-        -- Insert tooltips
-        if node.tooltip then
-            if node.name then
-                table.insert(tree, i, {
-                    type = "tooltip",
-                    gui_element_name = node.name,
-                    tooltip_text = node.tooltip,
-                })
-            else
-                local w, h = get_and_fill_in_sizes(node)
-                table.insert(tree, i, {
-                    type = "tooltip",
-                    x = node.x, y = node.y, w = w, h = h,
-                    tooltip_text = node.tooltip,
-                })
             end
         end
 

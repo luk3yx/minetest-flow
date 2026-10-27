@@ -958,8 +958,8 @@ describe("Flow", function()
                 tooltip = "test",
             }, [[
                 size[1.6,1.6]
-                tooltip[mybtn;test]
                 button[0.3,0.3;1,1;mybtn;]
+                tooltip[mybtn;test]
             ]])
         end)
 
@@ -970,8 +970,8 @@ describe("Flow", function()
                 tooltip = "test"
             }, [[
                 size[4.25,4.25]
-                tooltip[1,1;2.25,2.25;test]
                 list[;;1,1;2,2]
+                tooltip[1,1;2.25,2.25;test]
             ]])
         end)
     end)
